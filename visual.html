@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<div id = 'main'></div>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
+<script type="text/javascript">
+
+var width = 1920, height = 1000;
+var margin = {top: 20, bottom: 20, left: 20, right: 20};
+
+var zoom = d3.behavior.zoom()
+		   .scaleExtent([1,5])
+		   .on("zoom", moveAndZoom);
+	
+var svg = d3.select('#main').append('svg')
+	.attr('width', width)
+	.attr('height', height)
+	.call(zoom);
+
+var g_map = svg.append('g')
+	.attr('width', width)
+	.attr('height', height);
+	
+
+var projection = d3.geo.mercator()
+	.scale(265)
+	.center([0, 25])
+	.translate([width/2 - 50 , height/2]);
+var path = d3.geo.path().projection(projection);
+
+
+
+
+queue()
+	.defer(d3.json, "/public/worldmap.geojson")
+	.defer(d3.csv, "/public/MIDB_4.01.csv")//base data
+	.defer(d3.csv, "/public/MIDA_4.01.csv")//additional data
+	.defer(d3.csv, "/public/MIDLOC_1.1.csv")//additional data2
+	.await(function(error,mapData, csv_1, csv_2, csv_3){
+
+var data = d3.nest().key(function(d){ return d.DispNum3;})
+			 .entries(csv_1)
+var data_2 = csv_2, 
+	data_3 = csv_3;
+
+// console.log(data);
+// console.log(data_2);
+// console.log(data_3);
+
+for (var i = 0; i<= data.length-1; i++){
+
+		data[i].countries_A = [];
+		data[i].countries_B = [];
+		for(var j = 0; j <= data[i].values.length-1; j++){
+			// console.log(data[i].values[j].ccode);
+			if(data[i].values[j].SideA == 1){
+				data[i].countries_A.push(data[i].values[j].ccode);
+			}
+			else{
+				data[i].countries_B.push(data[i].values[j].ccode);	
+			}
+			
+
+		}
+
+		data[i].DispNum = data_2[i].DispNum3;
+		data[i].StYear = data_2[i].StYear;
+		data[i].StMon = data_2[i].StMon;
+		data[i].EndYear = data_2[i].EndYear;
+		data[i].EndMon = data_2[i].EndMon;
+		data[i].lat = data_3[i].latitude
+		data[i].lon = data_3[i].longitude
+		delete data[i].key;
+		delete data[i].values;
+	}
+
+console.log(data);
+
+
+var features = mapData.features;
+		g_map.selectAll('path').data(features).enter().append('path')
+		.attr('d', path)
+		.attr('vector-effect', 'non-scaling-stroke')
+		.style({fill: 'orange', stroke: 'white', strokewidth : 0.2})
+		.on('mouseover', mouseover)
+		.on('mouseout', mouseout);
+
+g_map.selectAll('circle')
+			 .data(data)
+			 .enter()
+			 .append('circle')
+			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
+			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
+			 .attr('r', 0)
+			 .transition()
+			 .delay((d, i) => i*0.2)
+			 .duration(1000)
+			 .attr('r', 2.5)
+			 .transition()
+			 .duration(500)
+			 .attr('r', 1)
+			 .style({fill:'purple', strokewidth: 0});
+
+
+})
+
+
+
+
+
+// d3.csv("/public/MIDB_4.01.csv", function(csv){
+
+// 	var data = d3.nest().key(function(d) { return d.DispNum3;})
+// 				 .entries(csv);
+
+// 	console.log(data);
+
+// 	for (var i = 0; i<= data.length-1; i++){
+
+// 		data[i].countries = [];
+// 		for(var j = 0; j <= data[i].values.length-1; j++){
+// 			console.log(data[i].values[j].ccode);
+// 			data[i].countries.push(data[i].values[j].ccode);
+
+// 		}
+
+// 		data[i].DispNum = data[i].values[0].DispNum3
+// 		data[i].EndDay= data[i].values[0].EndDay
+// 		data[i].EndMon = data[i].values[0].EndMon
+// 		data[i].EndYear = data[i].values[0].EndYear
+// 		data[i].Fatality = data[i].values[0].Fatality
+
+// 	}
+
+// 	console.log(data);
+// })
+
+
+
+
+function moveAndZoom() {
+            var t = d3.event.translate;
+            var s = d3.event.scale;
+
+            var x = Math.min(
+                (width / height) * (s - 1),
+                Math.max(width * (1 - s), t[0]));
+
+            var h = height / 4;
+            var y = Math.min(
+                h * (s - 1) + h * s,
+                Math.max(height * (1 - s) - h * s, t[1]));
+
+            g_map.style("stroke-width", ((1 / s) * 2) + "px");
+            g_map.attr('transform', 'translate(' + x + ',' + y + ')scale(' + s + ')');
+        }
+
+function mouseover(d){
+  // Highlight hovered province
+  d3.select(this).style('fill', 'pink');
+
+  // Draw effects
+}
+function mouseout(d){
+  d3.select(this).style('fill', 'orange');
+}
+
+
+</script>
+
+	
+	
+
+	
+</body>
+</html>
