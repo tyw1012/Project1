@@ -36,7 +36,7 @@ var path = d3.geo.path().projection(projection);
 
 
 queue()
-	.defer(d3.json, "/public/worldmap.geojson")
+	.defer(d3.json, "/public/worldmap.geojson")//world map
 	.defer(d3.csv, "/public/MIDB_4.01.csv")//base data
 	.defer(d3.csv, "/public/MIDA_4.01.csv")//additional data
 	.defer(d3.csv, "/public/MIDLOC_1.1.csv")//additional data2
@@ -89,55 +89,30 @@ var features = mapData.features;
 		.on('mouseover', mouseover)
 		.on('mouseout', mouseout);
 
-g_map.selectAll('circle')
+var circles = g_map.selectAll('circle')
 			 .data(data)
 			 .enter()
 			 .append('circle')
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
+			 .on('mouseover', mouseover2)
+			 .on('mouseout', mouseout2)
+			 .on('click', clicked)
 			 .transition()
 			 .delay((d, i) => i*0.2)
 			 .duration(1000)
 			 .attr('r', 2.5)
 			 .transition()
 			 .duration(500)
-			 .attr('r', 1)
+			 .attr('r', 1.2)
 			 .style({fill:'purple', strokewidth: 0});
+			 
+
 
 
 })
 
-
-
-
-
-// d3.csv("/public/MIDB_4.01.csv", function(csv){
-
-// 	var data = d3.nest().key(function(d) { return d.DispNum3;})
-// 				 .entries(csv);
-
-// 	console.log(data);
-
-// 	for (var i = 0; i<= data.length-1; i++){
-
-// 		data[i].countries = [];
-// 		for(var j = 0; j <= data[i].values.length-1; j++){
-// 			console.log(data[i].values[j].ccode);
-// 			data[i].countries.push(data[i].values[j].ccode);
-
-// 		}
-
-// 		data[i].DispNum = data[i].values[0].DispNum3
-// 		data[i].EndDay= data[i].values[0].EndDay
-// 		data[i].EndMon = data[i].values[0].EndMon
-// 		data[i].EndYear = data[i].values[0].EndYear
-// 		data[i].Fatality = data[i].values[0].Fatality
-
-// 	}
-
-// 	console.log(data);
-// })
 
 
 
@@ -162,13 +137,39 @@ function moveAndZoom() {
 function mouseover(d){
   // Highlight hovered province
   d3.select(this).style('fill', 'pink');
-
+  
   // Draw effects
 }
+
+function mouseover2(d){
+  // Highlight hovered province
+   d3.select(this).attr('r', 3.5);
+  
+  // Draw effects
+}
+
 function mouseout(d){
   d3.select(this).style('fill', 'orange');
 }
 
+function mouseout2(d){
+  d3.select(this).attr('r', 1.2);
+}
+
+function clicked(d){
+ highlight(d.countries_A, d.countries_B)
+
+}
+
+function highlight(a,b){
+	g_map.selectAll('path').filter(
+		function(d){return d.properties.COWCODE == a[0] || a[1] || a[2] || a[3]})
+		.style({fill: 'blue'});
+	g_map.selectAll('path').filter(
+		function(d){return d.properties.COWCODE == b[0]})
+		.style({fill: 'red'});
+
+}
 
 </script>
 
