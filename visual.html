@@ -11,7 +11,10 @@
 
 var width = 1920, height = 1000;
 var margin = {top: 20, bottom: 20, left: 20, right: 20};
-var flag = 0;
+
+var circle_clicked = false;
+var map_clicked = false;
+
 var zoom = d3.behavior.zoom()
 		   .scaleExtent([1,5])
 		   .on("zoom", moveAndZoom);
@@ -75,6 +78,7 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
 		data[i].lon = data_3[i].longitude
+		
 		delete data[i].key;
 		delete data[i].values;
 	}
@@ -83,13 +87,19 @@ console.log(data);
 
 
 var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1});
+	
+for (var i = 0; i <= features.length-1; i++){
+	features[i].clicked = false;
+}
+
+	
 var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.attr('d', path)
 		.attr('vector-effect', 'non-scaling-stroke')
 		.style({fill: 'orange', stroke: 'white', strokewidth : 0.2})
-		.on('mouseover', mouseover)
-		.on('mouseout', mouseout)
-		.on('click', map_clicked)
+		.on('mouseover', mouseoverMap)
+		.on('mouseout', mouseoutMap)
+		.on('click', selectMap)
 		// .on('click', );
 
 var circles = g_map.selectAll('circle')
@@ -99,9 +109,9 @@ var circles = g_map.selectAll('circle')
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
-			 .on('mouseover', mouseover2)
-			 .on('mouseout', mouseout2)
-			 .on('click', clicked)
+			 .on('mouseover', mouseoverCircle)
+			 .on('mouseout', mouseoutCircle)
+			 .on('click', selectCircle)
 			 .transition()
 			 .delay((d, i) => i*0.2)
 			 .duration(1000)
@@ -137,60 +147,71 @@ function moveAndZoom() {
             g_map.attr('transform', 'translate(' + x + ',' + y + ')scale(' + s + ')');
         }
 
-function mouseover(d){
+function mouseoverMap(d){
   // Highlight hovered province
-  if (flag === 0){
-   d3.select(this).style('fill', 'pink');	
+  if (d.clicked == false){
+   d3.select(this).style('fill', 'pink');
+
   }
-   
+   console.log(d)
   // Draw effects
 }
 
-function mouseover2(d){
+function mouseoverCircle(d){
   // Highlight hovered province
+
    d3.select(this).attr('r', 3.5);
   
   // Draw effects
 }
 
-function mouseout(d){
-	if (flag === 0){
+function mouseoutMap(d){
+	if (d.clicked == false){
 		d3.select(this).style('fill', 'orange');
 	}
   
 }
 
-function mouseout2(d){
+function mouseoutCircle(d){
   d3.select(this).attr('r', 1.2);
 }
 
-function clicked(d){
+function selectCircle(d){
 
-	if (flag === 0){
+	if (circle_clicked === false){
 
 	 highlight(d.countries_A, d.countries_B)
 	 console.log("DispNum", d.DispNum)
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
-	 flag = 1;
+	 circle_clicked = true;
 	}
 
 }
 
-function map_clicked(d){
-	if (flag === 1){
+function selectMap(d){
+	if (circle_clicked){
 		g_map.selectAll('path').style({fill:'orange'})
-		flag = 0;
+		circle_clicked = false;
 	}
+		
 	else {
+
+		if (!d.clicked){
+
+		d3.select(this).style({fill:'skyblue'});
 		g_map.selectAll('circle').filter(
 			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
 								  include(d_.countries_B, d.properties.COWCODE)	})
 			.attr('r', 3)
 			.style({fill:'green'});
-
-		console.log(d);
+		d.clicked = true;
+   		console.log(d)		
+		}
+		else{
+			d.clicked = false
+		}
 	}
 }
 
@@ -208,6 +229,10 @@ function include(arr, obj) {
     for(var i=0; i<=arr.length-1; i++) {
         if (arr[i] == obj) return true;
     }
+}
+
+function selected(d){
+
 }
 
 </script>
