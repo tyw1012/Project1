@@ -11,7 +11,7 @@
 
 var width = 1920, height = 1000;
 var margin = {top: 20, bottom: 20, left: 20, right: 20};
-
+var flag = 0;
 var zoom = d3.behavior.zoom()
 		   .scaleExtent([1,5])
 		   .on("zoom", moveAndZoom);
@@ -47,6 +47,7 @@ var data = d3.nest().key(function(d){ return d.DispNum3;})
 var data_2 = csv_2, 
 	data_3 = csv_3;
 
+console.log(mapData)
 // console.log(data);
 // console.log(data_2);
 // console.log(data_3);
@@ -81,13 +82,15 @@ for (var i = 0; i<= data.length-1; i++){
 console.log(data);
 
 
-var features = mapData.features;
-		g_map.selectAll('path').data(features).enter().append('path')
+var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1});
+var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.attr('d', path)
 		.attr('vector-effect', 'non-scaling-stroke')
 		.style({fill: 'orange', stroke: 'white', strokewidth : 0.2})
 		.on('mouseover', mouseover)
-		.on('mouseout', mouseout);
+		.on('mouseout', mouseout)
+		.on('click', map_clicked)
+		// .on('click', );
 
 var circles = g_map.selectAll('circle')
 			 .data(data)
@@ -136,8 +139,10 @@ function moveAndZoom() {
 
 function mouseover(d){
   // Highlight hovered province
-  d3.select(this).style('fill', 'pink');
-  
+  if (flag === 0){
+   d3.select(this).style('fill', 'pink');	
+  }
+   
   // Draw effects
 }
 
@@ -149,7 +154,10 @@ function mouseover2(d){
 }
 
 function mouseout(d){
-  d3.select(this).style('fill', 'orange');
+	if (flag === 0){
+		d3.select(this).style('fill', 'orange');
+	}
+  
 }
 
 function mouseout2(d){
@@ -157,18 +165,49 @@ function mouseout2(d){
 }
 
 function clicked(d){
- highlight(d.countries_A, d.countries_B)
 
+	if (flag === 0){
+
+	 highlight(d.countries_A, d.countries_B)
+	 console.log("DispNum", d.DispNum)
+	 console.log("countriesA", d.countries_A)
+	 console.log("countriesB",d.countries_B);
+
+	 flag = 1;
+	}
+
+}
+
+function map_clicked(d){
+	if (flag === 1){
+		g_map.selectAll('path').style({fill:'orange'})
+		flag = 0;
+	}
+	else {
+		g_map.selectAll('circle').filter(
+			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
+								  include(d_.countries_B, d.properties.COWCODE)	})
+			.attr('r', 3)
+			.style({fill:'green'});
+
+		console.log(d);
+	}
 }
 
 function highlight(a,b){
 	g_map.selectAll('path').filter(
-		function(d){return d.properties.COWCODE == a[0] || a[1] || a[2] || a[3]})
+		function(d){return include(a, d.properties.COWCODE)})
 		.style({fill: 'blue'});
 	g_map.selectAll('path').filter(
-		function(d){return d.properties.COWCODE == b[0]})
+		function(d){return include(b, d.properties.COWCODE)})
 		.style({fill: 'red'});
 
+}
+
+function include(arr, obj) {
+    for(var i=0; i<=arr.length-1; i++) {
+        if (arr[i] == obj) return true;
+    }
 }
 
 </script>
