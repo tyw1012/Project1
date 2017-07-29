@@ -1,5 +1,17 @@
 <!DOCTYPE html>
+<style type="text/css">
+.mapClicked{
+	fill: #bbb;
+}
+.mapNotClicked{
+	fill: #aaa; stroke: #eee; stroke-width : 0.2;
+}	
+
+</style>
+
+
 <html>
+
 <head>
 	<title></title>
 </head>
@@ -96,10 +108,11 @@ for (var i = 0; i <= features.length-1; i++){
 var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.attr('d', path)
 		.attr('vector-effect', 'non-scaling-stroke')
-		.style({fill: 'orange', stroke: 'white', strokewidth : 0.2})
+		.classed('mapNotClicked', true)
 		.on('mouseover', mouseoverMap)
 		.on('mouseout', mouseoutMap)
 		.on('click', selectMap)
+		
 		// .on('click', );
 
 var circles = g_map.selectAll('circle')
@@ -167,7 +180,7 @@ function mouseoverCircle(d){
 
 function mouseoutMap(d){
 	if (d.clicked == false){
-		d3.select(this).style('fill', 'orange');
+		d3.select(this).style('fill', '#aaa' );
 	}
   
 }
