@@ -7,14 +7,22 @@
 	fill: #aaa; stroke: #eee; stroke-width : 0.2;
 }	
 .circleClicked{
-
+	fill: #ccccff
 }
 
 .circleNotClicked{
+	fill: #004080;
+}
+.mapHighlighted{
 
 }
-.highlighted{
 
+.circleHighlighted{
+	fill: #ff6666; 
+}
+circle.clicked{
+	fill: #bbb;
+	r: 5;
 }
 
 </style>
@@ -108,7 +116,7 @@ for (var i = 0; i<= data.length-1; i++){
 console.log(data);
 
 
-var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1});
+var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && !(d.properties.COWCODE == 365 && (d.properties.COWEYEAR ==1991))});
 	
 for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
@@ -133,6 +141,7 @@ var circles = g_map.selectAll('circle')
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
+			 .classed('circleNotClicked', true)
 			 .on('mouseover', mouseoverCircle)
 			 .on('mouseout', mouseoutCircle)
 			 .on('click', selectCircle)
@@ -142,8 +151,8 @@ var circles = g_map.selectAll('circle')
 			 .attr('r', 2.5)
 			 .transition()
 			 .duration(500)
-			 .attr('r', 1.2)
-			 .style({fill:'purple', strokewidth: 0});
+			 .attr('r', 1.2);
+			
 			 
 
 
@@ -173,7 +182,7 @@ function moveAndZoom() {
 
 function mouseoverMap(d){
   // Highlight hovered province
-  if (!d.clicked && !d3.select(this).classed("highlighted")){
+  if (!d.clicked && !d3.select(this).classed("mapHighlighted")){
    d3.select(this).style('fill', 'pink');
 
   }
@@ -183,33 +192,43 @@ function mouseoverMap(d){
 
 
 function mouseoutMap(d){
-	if (!d.clicked && !d3.select(this).classed("highlighted")){
+	if (!d.clicked && !d3.select(this).classed("mapHighlighted")){
 		d3.select(this).style('fill', '#aaa' );
 	}
   
 }
 
 function mouseoverCircle(d){
-  
+
+
    d3.select(this).attr('r', 3.5);
     
 }
 
 
 function mouseoutCircle(d){
-  d3.select(this).attr('r', 1.2);
+
+	if(d3.select(this).classed('circleHighlighted') || d3.select(this).classed('circleClicked')){
+		d3.select(this).attr('r', 3);
+	}
+	else{
+		d3.select(this).attr('r', 1.2);
+	}
+  
 }
 
 function selectCircle(d){
 
-	if (!circle_clicked){
+	if (!circle_clicked ){
 
 	 highlight(d.countries_A, d.countries_B)
 	 console.log("DispNum", d.DispNum)
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
-	 
+	 d3.selectAll('circle').attr('style',null).attr('r', 1.2).classed('circleNotClicked', true).classed('circleHighlighted', false);
+	 d3.select(this).attr('style', null).classed('circleNotClicked', false).classed('circleClicked', true).attr('r', 3);
+	 console.log(this);
 	 circle_clicked = true;
 	}
 
@@ -218,26 +237,33 @@ function selectCircle(d){
 function selectMap(d){
 	if (circle_clicked){
 		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
-		classed('mapClicked', false).classed('highlighted', false);
+		classed('mapClicked', false).classed('mapHighlighted', false);
+		d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true);
 		circle_clicked = false;
 	}
 		
 	else {
 
+		var fltr_circles = g_map.selectAll('circle').filter(
+			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
+								  include(d_.countries_B, d.properties.COWCODE)	});
+
 		if (!d.clicked){
 		console.log(this)
 		d3.select(this).attr('style', null).classed('mapNotClicked', false).classed('mapClicked', true);
-		g_map.selectAll('circle').filter(
-			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
-								  include(d_.countries_B, d.properties.COWCODE)	})
-			.attr('r', 3)
-			.style({fill:'green'});
+		
+			fltr_circles.attr('r', 3);
+			fltr_circles.attr('style',null).classed('circleHighlighted', true);
+
 		d.clicked = true;
    		console.log(d)		
 		}
 		else{
 			d.clicked = false
 			d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
+
+			fltr_circles.attr('r', 1.2);
+			fltr_circles.classed('circleHighlighted', false)
 		}
 	}
 }
@@ -245,10 +271,10 @@ function selectMap(d){
 function highlight(a,b){
 	g_map.selectAll('path').filter(
 		function(d){ return include(a, d.properties.COWCODE)})
-		.style({fill: 'blue'}).classed('highlighted', true);
+		.style({fill: 'blue'}).classed('mapHighlighted', true);
 	g_map.selectAll('path').filter(
 		function(d){ return include(b, d.properties.COWCODE)})
-		.style({fill: 'red'}).classed('highlighted', true);
+		.style({fill: 'red'}).classed('mapHighlighted', true);
 
 }
 
