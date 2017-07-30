@@ -1,11 +1,21 @@
 <!DOCTYPE html>
 <style type="text/css">
 .mapClicked{
-	fill: #bbb;
+	fill: #ccc; stroke: #eee; stroke-width : 0.2;
 }
 .mapNotClicked{
 	fill: #aaa; stroke: #eee; stroke-width : 0.2;
 }	
+.circleClicked{
+
+}
+
+.circleNotClicked{
+
+}
+.highlighted{
+
+}
 
 </style>
 
@@ -25,7 +35,7 @@ var width = 1920, height = 1000;
 var margin = {top: 20, bottom: 20, left: 20, right: 20};
 
 var circle_clicked = false;
-var map_clicked = false;
+// var map_clicked = false;
 
 var zoom = d3.behavior.zoom()
 		   .scaleExtent([1,5])
@@ -89,7 +99,7 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].EndYear = data_2[i].EndYear;
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
-		data[i].lon = data_3[i].longitude
+		data[i].lon = data_3[i].longitude;
 		
 		delete data[i].key;
 		delete data[i].values;
@@ -102,6 +112,7 @@ var features = mapData.features.filter(function(d){return d.properties.COWCODE !
 	
 for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
+	features[i].highlighted = false;
 }
 
 	
@@ -162,28 +173,28 @@ function moveAndZoom() {
 
 function mouseoverMap(d){
   // Highlight hovered province
-  if (d.clicked == false){
+  if (!d.clicked && !d3.select(this).classed("highlighted")){
    d3.select(this).style('fill', 'pink');
 
   }
-   console.log(d)
+    console.log(d)
   // Draw effects
 }
 
-function mouseoverCircle(d){
-  // Highlight hovered province
-
-   d3.select(this).attr('r', 3.5);
-  
-  // Draw effects
-}
 
 function mouseoutMap(d){
-	if (d.clicked == false){
+	if (!d.clicked && !d3.select(this).classed("highlighted")){
 		d3.select(this).style('fill', '#aaa' );
 	}
   
 }
+
+function mouseoverCircle(d){
+  
+   d3.select(this).attr('r', 3.5);
+    
+}
+
 
 function mouseoutCircle(d){
   d3.select(this).attr('r', 1.2);
@@ -191,13 +202,14 @@ function mouseoutCircle(d){
 
 function selectCircle(d){
 
-	if (circle_clicked === false){
+	if (!circle_clicked){
 
 	 highlight(d.countries_A, d.countries_B)
 	 console.log("DispNum", d.DispNum)
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
+	 
 	 circle_clicked = true;
 	}
 
@@ -205,15 +217,16 @@ function selectCircle(d){
 
 function selectMap(d){
 	if (circle_clicked){
-		g_map.selectAll('path').style({fill:'orange'})
+		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+		classed('mapClicked', false).classed('highlighted', false);
 		circle_clicked = false;
 	}
 		
 	else {
 
 		if (!d.clicked){
-
-		d3.select(this).style({fill:'skyblue'});
+		console.log(this)
+		d3.select(this).attr('style', null).classed('mapNotClicked', false).classed('mapClicked', true);
 		g_map.selectAll('circle').filter(
 			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
 								  include(d_.countries_B, d.properties.COWCODE)	})
@@ -224,17 +237,18 @@ function selectMap(d){
 		}
 		else{
 			d.clicked = false
+			d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
 		}
 	}
 }
 
 function highlight(a,b){
 	g_map.selectAll('path').filter(
-		function(d){return include(a, d.properties.COWCODE)})
-		.style({fill: 'blue'});
+		function(d){ return include(a, d.properties.COWCODE)})
+		.style({fill: 'blue'}).classed('highlighted', true);
 	g_map.selectAll('path').filter(
-		function(d){return include(b, d.properties.COWCODE)})
-		.style({fill: 'red'});
+		function(d){ return include(b, d.properties.COWCODE)})
+		.style({fill: 'red'}).classed('highlighted', true);
 
 }
 
