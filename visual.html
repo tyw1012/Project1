@@ -179,7 +179,7 @@ function moveAndZoom() {
 
 function mouseoverMap(d){
   // Highlight hovered province
-  if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed("mapHighlighted")){
+  if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted') ){
    d3.select(this).style('fill', 'pink');
 
   }
@@ -189,7 +189,7 @@ function mouseoverMap(d){
 
 
 function mouseoutMap(d){
-	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed("mapHighlighted")){
+	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted')){
 		d3.select(this).style('fill', '#aaa' );
 	}
   
@@ -205,7 +205,7 @@ function mouseoverCircle(d){
 
 function mouseoutCircle(d){
 
-	if(d3.select(this).classed('circleHighlighted') || d3.select(this).classed('circleClicked')){
+	if(d3.select(this).classed('circleHighlighted') || d3.select(this).classed('circleClicked') || d3.select(this).classed('intersected')){
 		d3.select(this).attr('r', 3);
 	}
 	else{
@@ -259,7 +259,7 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 
 				if (map_clicked == 0){
 
-						if (!d3.select(this).classed('mapClicked')){
+						 
 							console.log(this)
 							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
 						
@@ -269,27 +269,33 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 							d.clicked = true;
 							map_clicked = 1
 							console.log(d)		
-						}
-
-						else{
-							d.clicked = false
-							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
-
-							fltr_circles.attr('r', 1.2);
-							fltr_circles.attr('class', null).classed('circleNotClicked', true);
-						}
+				
+						
 				}
 
 				else{
 
 					if(map_clicked == 1){
 
-						d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
-						d.clicked = true;
-						fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('intersected',true).attr('r',5);
-						d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',1.2);	
-						// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
-						map_clicked = 2;
+						if(!d3.select(this).classed('mapClicked'))
+						{
+							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+							d.clicked = true;
+							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('intersected',true).attr('r',3);
+							d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',1.2);	
+							// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
+							map_clicked = 2;
+						}
+						else{
+
+							d.clicked = false
+							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
+
+							fltr_circles.attr('r', 1.2);
+							fltr_circles.attr('class', null).classed('circleNotClicked', true);
+							map_clicked = 0;
+
+						}
 					}
 				    else{
 
@@ -305,9 +311,6 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 				}		
 			}
 	}
-
-	
-
 
 
 function highlight(a,b){
@@ -329,9 +332,6 @@ function include(arr, obj) {
 
 
 </script>
-
-	
-	
 
 	
 </body>
