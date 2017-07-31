@@ -21,6 +21,9 @@
 	fill: #ff6666; 
 }
 
+.intersected{
+	fill: #6542f4;
+}
 
 </style>
 
@@ -176,7 +179,7 @@ function moveAndZoom() {
 
 function mouseoverMap(d){
   // Highlight hovered province
-  if (!d.clicked && !d3.select(this).classed("mapHighlighted")){
+  if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed("mapHighlighted")){
    d3.select(this).style('fill', 'pink');
 
   }
@@ -186,7 +189,7 @@ function mouseoverMap(d){
 
 
 function mouseoutMap(d){
-	if (!d.clicked && !d3.select(this).classed("mapHighlighted")){
+	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed("mapHighlighted")){
 		d3.select(this).style('fill', '#aaa' );
 	}
   
@@ -236,42 +239,76 @@ function selectCircle(d){
 }
 
 function selectMap(d){
-	if (circle_clicked ){
-		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
-		classed('mapClicked', false).classed('mapHighlighted', false);
-		d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', 1.2);
-		circle_clicked = false;
-		d.clicked = false;
-		
-	}
-		
-	else {
 
-		var fltr_circles = g_map.selectAll('circle').filter(
-			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
-								  include(d_.countries_B, d.properties.COWCODE)	});
+var fltr_circles = g_map.selectAll('circle').filter(function (d_){
+	return include(d_.countries_A, d.properties.COWCODE) ||
+	  	   include(d_.countries_B, d.properties.COWCODE)});
 
+	
 
-				if (!d.clicked){
-				console.log(this)
-				d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+			if (circle_clicked ){
+				g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+				classed('mapClicked', false).classed('mapHighlighted', false);
+				d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', 1.2);
+				circle_clicked = false;
+				d.clicked = false;
 				
-					fltr_circles.attr('r', 3);
-					fltr_circles.attr('style',null).attr('class',null).classed('circleHighlighted', true);
+			}
+				
+			else {
 
-				d.clicked = true;
-				console.log(d)		
+				if (map_clicked == 0){
+
+						if (!d3.select(this).classed('mapClicked')){
+							console.log(this)
+							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+						
+							fltr_circles.attr('r', 3);
+							fltr_circles.attr('style',null).attr('class',null).classed('circleHighlighted', true);
+							console.log(fltr_circles);
+							d.clicked = true;
+							map_clicked = 1
+							console.log(d)		
+						}
+
+						else{
+							d.clicked = false
+							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
+
+							fltr_circles.attr('r', 1.2);
+							fltr_circles.attr('class', null).classed('circleNotClicked', true);
+						}
 				}
 
 				else{
-					d.clicked = false
-					d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
 
-					fltr_circles.attr('r', 1.2);
-					fltr_circles.attr('class', null).classed('circleNotClicked', true);
-				}
+					if(map_clicked == 1){
+
+						d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+						d.clicked = true;
+						fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('intersected',true).attr('r',5);
+						d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',1.2);	
+						// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
+						map_clicked = 2;
+					}
+				    else{
+
+				    	g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+						classed('mapClicked', false).classed('mapHighlighted', false);
+						d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', 1.2);
+						circle_clicked = false;
+						d.clicked = false;
+						map_clicked = 0;
+
+
+				    }		
+				}		
+			}
 	}
-}
+
+	
+
+
 
 function highlight(a,b){
 	g_map.selectAll('path').filter(
