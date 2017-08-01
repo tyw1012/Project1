@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <style type="text/css">
 .mapClicked{
-	fill: #ccc; stroke: #eee; stroke-width : 0.2;
+	fill: #FCCF6E; stroke: #eee; stroke-width : 0.5;
 }
 .mapNotClicked{
-	fill: #aaa; stroke: #eee; stroke-width : 0.3;
+	fill: #daa; stroke: #eee; stroke-width : 0.3;
 }	
 .circleClicked{
 	fill: #ccccff
@@ -13,7 +13,8 @@
 .circleNotClicked{
 	fill: #004080;
 }
-.mapHighlighted{
+.mapHovered{
+	fill: #F29C3A;
 
 }
 
@@ -53,17 +54,22 @@ var zoom = d3.behavior.zoom()
 var svg = d3.select('#main').append('svg')
 	.attr('width', width)
 	.attr('height', height)
-	.call(zoom);
+	// .call(zoom);
 
 var g_map = svg.append('g')
 	.attr('width', width)
-	.attr('height', height);
+	.attr('height', height)		
+	// .attr('fill', 'blue');
+
+// var g_board = svg.append('g')
+//     .attr('width', 500)
+//     .attr('height', height);
 	
 
 var projection = d3.geo.mercator()
 	.scale(265)
-	.center([0, 25])
-	.translate([width/2 - 50 , height/2]);
+	.center([0, 35])
+	.translate([width/2 -150 , height/2]);
 var path = d3.geo.path().projection(projection);
 
 
@@ -180,7 +186,7 @@ function moveAndZoom() {
 function mouseoverMap(d){
   // Highlight hovered province
   if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted') ){
-   d3.select(this).style('fill', 'pink');
+   d3.select(this).classed('mapHovered', true );
 
   }
     console.log(d)
@@ -190,7 +196,7 @@ function mouseoverMap(d){
 
 function mouseoutMap(d){
 	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted')){
-		d3.select(this).style('fill', '#aaa' );
+	d3.select(this).classed('mapHovered', false ).classed('mapNotClicked',true);
 	}
   
 }
@@ -316,10 +322,10 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 function highlight(a,b){
 	g_map.selectAll('path').filter(
 		function(d){ return include(a, d.properties.COWCODE)})
-		.style({fill: 'blue'}).classed('mapHighlighted', true);
+		.style({fill: 'blue'}).style('fill-opacity', .3).classed('mapHighlighted', true);
 	g_map.selectAll('path').filter(
 		function(d){ return include(b, d.properties.COWCODE)})
-		.style({fill: 'red'}).classed('mapHighlighted', true);
+		.style({fill: 'red'}).style('fill-opacity', .3).classed('mapHighlighted', true);
 
 }
 
