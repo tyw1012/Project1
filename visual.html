@@ -43,7 +43,7 @@
 <body style ="height: 100%; margin: 0;">
 <div id = 'main' style="width:75%; height:100%; float:left"></div>
 
-<div id = 'board' style = "width:25%; height:100%; float:left; background: #abb"></div>
+<div id = 'board' style = "width:25%; height:100%; float:left; background: #abb; overflow:auto;"></div>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 <script type="text/javascript">
@@ -87,6 +87,9 @@ var path = d3.geo.path().projection(projection);
 
 
 
+var boardSVG = d3.select('#board').append('svg').attr('height', '100%').attr('width', '100%').style('overflow','auto');
+
+
 
 queue()
 	.defer(d3.json, "/public/worldmap.geojson")//world map
@@ -128,6 +131,8 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
 		data[i].lon = data_3[i].longitude;
+		// data[i].clicked = false
+		// data[i].highlighted = false
 		
 		delete data[i].key;
 		delete data[i].values;
@@ -278,15 +283,17 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 				if (map_clicked == 0){
 
 						 
-							console.log(this)
+							// console.log(this)
 							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
 						
 							fltr_circles.attr('r', 3);
 							fltr_circles.attr('style',null).attr('class',null).classed('circleHighlighted', true);
-							console.log(fltr_circles);
+							console.log("fltr",fltr_circles);
 							d.clicked = true;
 							map_clicked = 1
-							console.log(d)		
+							// console.log(d)
+							drawCircle();
+
 				
 						
 				}
@@ -312,6 +319,7 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 							fltr_circles.attr('r', 1.2);
 							fltr_circles.attr('class', null).classed('circleNotClicked', true);
 							map_clicked = 0;
+							removeCircle();
 
 						}
 					}
@@ -351,6 +359,23 @@ function zoomed() {
   g_map.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 }
 
+
+function drawCircle(){
+	
+	var selectedCircles = d3.selectAll('.circleHighlighted')
+	boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
+	boardSVG.selectAll('circle').data(selectedCircles.data()).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 20} ).attr('r',0).attr('fill', '#ff6666').transition()
+			 .delay((d, i) => i*20)
+			 .duration(1000)
+			 .attr('r', 12);
+
+	console.log(selectedCircles.data())
+}
+
+function removeCircle(){
+	boardSVG.selectAll('circle').remove();
+	boardSVG.attr('height', '100%');
+}
 </script>
 
 	
