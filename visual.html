@@ -1,5 +1,11 @@
 <!DOCTYPE html>
 <style type="text/css">
+*{
+	margin:0;
+	padding:0;
+	list-style:none;
+
+}
 .mapClicked{
 	fill: #FCCF6E; stroke: #eee; stroke-width : 0.5;
 }
@@ -29,36 +35,43 @@
 </style>
 
 
-<html>
+<html style ="height:100%">
 
 <head>
 	<title></title>
 </head>
-<body>
-<div id = 'main'></div>
+<body style ="height: 100%; margin: 0;">
+<div id = 'main' style="width:75%; height:100%; float:left"></div>
+
+<div id = 'board' style = "width:25%; height:100%; float:left; background: #abb"></div>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 <script type="text/javascript">
 
-var width = 1920, height = 1000;
-var margin = {top: 20, bottom: 20, left: 20, right: 20};
+var width = 1920; var height = 1000;
+// var margin = {top: 20, bottom: 20, left: 20, right: 20};
 
 var circle_clicked = false;
 var map_clicked = 0;
 
-
 var zoom = d3.behavior.zoom()
-		   .scaleExtent([1,5])
-		   .on("zoom", moveAndZoom);
+    .scaleExtent([1, 10])
+    .on("zoom", zoomed);
+
+
+
+// var zoom = d3.behavior.zoom()
+// 		   .scaleExtent([1,5])
+// 		   .on("zoom", moveAndZoom);
 	
 var svg = d3.select('#main').append('svg')
-	.attr('width', width)
-	.attr('height', height)
-	// .call(zoom);
+	.attr('width', '100%')
+	.attr('height', '100%')
+	.call(zoom);
 
 var g_map = svg.append('g')
-	.attr('width', width)
-	.attr('height', height)		
+	// .attr('width', width)
+	// .attr('height', height)		
 	// .attr('fill', 'blue');
 
 // var g_board = svg.append('g')
@@ -179,7 +192,7 @@ function moveAndZoom() {
                 h * (s - 1) + h * s,
                 Math.max(height * (1 - s) - h * s, t[1]));
 
-            g_map.style("stroke-width", ((1 / s) * 2) + "px");
+            // g_map.style("stroke-width", ((1 / s) * 2) + "px");
             g_map.attr('transform', 'translate(' + x + ',' + y + ')scale(' + s + ')');
         }
 
@@ -203,9 +216,8 @@ function mouseoutMap(d){
 
 function mouseoverCircle(d){
 
-
    d3.select(this).attr('r', 3.5);
-    
+
 }
 
 
@@ -335,7 +347,9 @@ function include(arr, obj) {
     }
 }
 
-
+function zoomed() {
+  g_map.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
 
 </script>
 
