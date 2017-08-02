@@ -41,11 +41,12 @@
 	<title></title>
 </head>
 <body style ="height: 100%; margin: 0;">
-<div id = 'main' style="width:75%; height:100%; float:left"></div>
+<div id = 'main' style="width:75%; height:100%; float:left; overflow:hidden;"></div>
 
-<div id = 'board' style = "width:25%; height:100%; float:left; background: #abb; overflow:auto;"></div>
+<div id = 'board' style = "width:25%; height:100%; float:left; background: #abb; overflow:auto"></div>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
+<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
 <script type="text/javascript">
 
 var width = 1920; var height = 1000;
@@ -121,10 +122,7 @@ for (var i = 0; i<= data.length-1; i++){
 			else{
 				data[i].countries_B.push(data[i].values[j].ccode);	
 			}
-			
-
 		}
-
 		data[i].DispNum = data_2[i].DispNum3;
 		data[i].StYear = data_2[i].StYear;
 		data[i].StMon = data_2[i].StMon;
@@ -132,6 +130,7 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
 		data[i].lon = data_3[i].longitude;
+		data[i].Start = data[i].StYear + '-' + data[i].StMon
 		// data[i].clicked = false
 		// data[i].highlighted = false
 		
@@ -141,14 +140,12 @@ for (var i = 0; i<= data.length-1; i++){
 
 console.log(data);
 
-
 var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && !(d.properties.COWCODE == 365 && (d.properties.COWEYEAR ==1991))});
 	
 for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
 	features[i].highlighted = false;
 }
-
 	
 var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.attr('d', path)
@@ -157,7 +154,6 @@ var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.on('mouseover', mouseoverMap)
 		.on('mouseout', mouseoutMap)
 		.on('click', selectMap)
-		
 		// .on('click', );
 
 var circles = g_map.selectAll('circle')
@@ -183,7 +179,6 @@ var circles = g_map.selectAll('circle')
 
 
 })
-
 
 function moveAndZoom() {
             var t = d3.event.translate;
@@ -211,7 +206,6 @@ function mouseoverMap(d){
     console.log(d)
   // Draw effects
 }
-
 
 function mouseoutMap(d){
 	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted')){
@@ -365,17 +359,23 @@ function drawCircle(){
 	
 	var selectedCircles = d3.selectAll('.circleHighlighted')
 	boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
-	boardSVG.selectAll('circle').data(selectedCircles.data()).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 20} ).attr('r',0).attr('fill', '#ff6666').transition()
+	boardSVG.selectAll('circle').data(selectedCircles.data().sort(sortByDateAscending)).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 20} ).attr('r',0).attr('fill', '#ff6666').transition()
 			 .delay((d, i) => i*20)
 			 .duration(1000)
 			 .attr('r', 12);
 
-	console.log(selectedCircles.data())
+	console.log(selectedCircles.data().sort(sortByDateAscending))
 }
 
 function removeCircle(){
 	boardSVG.selectAll('circle').remove();
 	boardSVG.attr('height', '100%');
+}
+
+function sortByDateAscending(a,b){
+	var parseTime = d3.timeParse("%Y-%m")
+	return parseTime(a.Start) - parseTime(b.Start)
+
 }
 </script>
 
