@@ -10,7 +10,7 @@
 	fill: #FCCF6E; stroke: #eee; stroke-width : 0.5;
 }
 .mapNotClicked{
-	fill: #daa; stroke: #eee; stroke-width : 0.3;
+	fill: #daa; stroke: #eee; stroke-width : 0.5;
 }	
 .circleClicked{
 	fill: #ccccff
@@ -53,6 +53,7 @@ var width = 1920; var height = 1000;
 
 var circle_clicked = false;
 var map_clicked = 0;
+var dflt_radius = 1.5;
 
 var zoom = d3.behavior.zoom()
     .scaleExtent([1, 10])
@@ -174,10 +175,10 @@ var circles = g_map.selectAll('circle')
 			 .transition()
 			 .delay((d, i) => i*0.2)
 			 .duration(1000)
-			 .attr('r', 2.5)
+			 .attr('r', 3.5)
 			 .transition()
 			 .duration(500)
-			 .attr('r', 1.2);
+			 .attr('r', dflt_radius);
 			 // .attr('class', 'circleNotClicked');
 
 
@@ -232,7 +233,7 @@ function mouseoutCircle(d){
 		d3.select(this).attr('r', 3);
 	}
 	else{
-		d3.select(this).attr('r', 1.2);
+		d3.select(this).attr('r', dflt_radius);
 	}
   
 }
@@ -246,7 +247,7 @@ function selectCircle(d){
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
-	 d3.selectAll('circle').attr('style',null).attr('class', null).classed('circleNotClicked', true).attr('r', 1.2);
+	 d3.selectAll('circle').attr('style',null).attr('class', null).classed('circleNotClicked', true).attr('r', dflt_radius);
 	 d3.select(this).attr('style', null).classed('circleNotClicked', false).classed('circleClicked', true).attr('r', 3);
 	 console.log(this);
 	 circle_clicked = true;
@@ -254,7 +255,7 @@ function selectCircle(d){
 	else{
 		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
 		classed('mapClicked', false).classed('mapHighlighted', false);
-		d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', 1.2);
+		d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 		circle_clicked = false;
 
 	}
@@ -272,7 +273,7 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 			if (circle_clicked ){
 				g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
 				classed('mapClicked', false).classed('mapHighlighted', false);
-				d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', 1.2);
+				d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 				circle_clicked = false;
 				d.clicked = false;
 				
@@ -307,7 +308,7 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
 							d.clicked = true;
 							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('intersected',true).attr('r',3);
-							d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',1.2);	
+							d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',dflt_radius);	
 							// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
 							map_clicked = 2;
 						}
@@ -316,7 +317,7 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 							d.clicked = false
 							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
 
-							fltr_circles.attr('r', 1.2);
+							fltr_circles.attr('r', dflt_radius);
 							fltr_circles.attr('class', null).classed('circleNotClicked', true);
 							map_clicked = 0;
 							removeCircle();
@@ -327,7 +328,7 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 
 				    	g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
 						classed('mapClicked', false).classed('mapHighlighted', false);
-						d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', 1.2);
+						d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 						circle_clicked = false;
 						d.clicked = false;
 						map_clicked = 0;
