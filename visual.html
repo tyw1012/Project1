@@ -69,6 +69,7 @@ var zoom = d3.behavior.zoom()
 var svg = d3.select('#main').append('svg')
 	.attr('width', '100%')
 	.attr('height', '100%')
+	// .attr('fill','blue')
 	.call(zoom);
 
 var g_map = svg.append('g')
@@ -365,6 +366,9 @@ function drawCircle(){
 			 .attr('r', 12);
 
 	console.log(selectedCircles.data().sort(sortByDateAscending))
+
+	// var displayedCircles = d3.select('#board').selectAll('circle')
+	// boardSVG.selectAll('rect').data(selectedCircles.data().sort(sortBydateAscending)).enter().append('rect').attr('x', 100).attr('y', function(d,i){return i*40+20}).attr('width',).attr('height', 24).
 }
 
 function removeCircle(){
