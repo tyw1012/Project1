@@ -61,9 +61,12 @@
 
 </div>
 <script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
 <script type="text/javascript">
+
 
 var width = 1920; var height = 1000;
 // var margin = {top: 20, bottom: 20, left: 20, right: 20};
@@ -96,8 +99,8 @@ var g_map = svg.append('g')
 //     .attr('width', 500)
 //     .attr('height', height);
 	
-var boardSVG_circle = d3.select('#board').append('svg').attr('height','100%').attr('width','17%').style('overflow','auto')
-var boardSVG = d3.select('#board').append('svg').attr('height', '100%').attr('width', '83%').style('overflow','auto');
+var boardSVG_circle = d3.select('#board').append('svg').attr('height','100%').attr('width','17%').style('overflow','auto').classed('boardCircle',true)
+var boardSVG = d3.select('#board').append('svg').attr('height', '100%').attr('width', '83%').style('overflow','auto').classed('boardMain',true);
 
 var projection = d3.geo.mercator()
 	.scale(265)
@@ -107,16 +110,16 @@ var path = d3.geo.path().projection(projection);
 
 var timeScale = d3.time.scale()
   .domain([new Date('1946-03'), new Date('1991-12')])
-  .range([20, d3.select('#board').style('width').replace('px','')-30])
+  .range([20, d3.select('.boardMain').style('width').replace('px','')-30])
   .clamp(true);
 
-var timeZoom = d3.behavior.zoom()
+var timeZoom = d3.behavior.zoom().scaleExtent([1, 25])
       .x(timeScale).on('zoom', timeZoomed )
 
 
 
 
-var timeZoomBox = boardSVG.append('rect').attr('width',300).attr('height',100).call(timeZoom)
+var timeZoomBox = boardSVG.append('rect').attr('y',50).attr('width',d3.select('.boardMain').style('width').replace('px','')).attr('height',d3.select('.boardMain').style('height').replace('px','')).style('visibility','invisible').style('fill-opacity', 0.1).call(timeZoom);
 
 
 
@@ -476,9 +479,9 @@ function updated(){
 }
 
 function timeZoomed(){
-	var new_timeScale = d3.event.transform.rescaleX(timeScale);
-	axisG.call(timeAxis.scale(new_timeScale));
-	console.log('zoomed');
+	
+  boardSVG.select('.x.axis').call(timeAxis)
+  console.log('zoomed')
 
 }
 </script>
