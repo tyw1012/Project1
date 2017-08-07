@@ -54,9 +54,12 @@
 	<title></title>
 </head>
 <body style ="height: 100%; margin: 0;">
-<div id = 'main' style="width:75%; height:100%; float:left; overflow:hidden;"></div>
+<div id = 'main' style="width:72%; height:100%; float:left; overflow:hidden;"></div>
 
-<div id = 'board' style = "width:25%; height:100%; float:left; background: #abb; overflow:auto"></div>
+<div id = 'board' style = "width:28%; height:100%; float:left; background: #abb; overflow:auto">
+	<!-- <div id = 'circleboard' style = "width: 50px; height:100%; float:left; background : #aaa; overflow:auto"></div> -->
+
+</div>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
@@ -93,6 +96,8 @@ var g_map = svg.append('g')
 //     .attr('width', 500)
 //     .attr('height', height);
 	
+var boardSVG_circle = d3.select('#board').append('svg').attr('height','100%').attr('width','17%').style('overflow','auto')
+var boardSVG = d3.select('#board').append('svg').attr('height', '100%').attr('width', '83%').style('overflow','auto');
 
 var projection = d3.geo.mercator()
 	.scale(265)
@@ -100,18 +105,25 @@ var projection = d3.geo.mercator()
 	.translate([width/2 -150 , height/2]);
 var path = d3.geo.path().projection(projection);
 
-
-
-var boardSVG = d3.select('#board').append('svg').attr('height', '100%').attr('width', '100%').style('overflow','auto');
-
-
 var timeScale = d3.time.scale()
   .domain([new Date('1946-03'), new Date('1991-12')])
   .range([20, d3.select('#board').style('width').replace('px','')-30])
   .clamp(true);
 
+var timeZoom = d3.behavior.zoom()
+      .x(timeScale).on('zoom', timeZoomed )
+
+
+
+
+var timeZoomBox = boardSVG.append('rect').attr('width',300).attr('height',100).call(timeZoom)
+
+
+
+
 var timeAxis = d3.svg.axis().scale(timeScale).orient('bottom')
-			   .tickFormat(timeFormat).tickSize(0).tickPadding(12).tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
+			   .tickFormat(timeFormat).tickSize(0).tickPadding(12)
+			   // .tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
 
 var startValue = timeScale(new Date('1946-03'));
 startingValue = new Date('1946-03');
@@ -422,8 +434,9 @@ function zoomed() {
 function drawCircle(){
 	
 	var selectedCircles = d3.selectAll('.circleHighlighted')
+	boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2});
 	boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
-	boardSVG.selectAll('circle').data(selectedCircles.data().sort(sortByDateAscending)).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 20} ).attr('r',0).attr('fill', '#ff6666').transition()
+	boardSVG_circle.selectAll('circle').data(selectedCircles.data().sort(sortByDateAscending)).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 20} ).attr('r',0).attr('fill', '#ff6666').transition()
 			 .delay((d, i) => i*20)
 			 .duration(1000)
 			 .attr('r', 12);
@@ -435,7 +448,8 @@ function drawCircle(){
 }
 
 function removeCircle(){
-	boardSVG.selectAll('circle').remove();
+	boardSVG_circle.selectAll('circle').remove();
+	boardSVG_circle.attr('height', '100%');
 	boardSVG.attr('height', '100%');
 }
 
@@ -455,6 +469,17 @@ function brushed() {
 
   slider_handle.attr("transform", "translate(" + timeScale(value) + ",0)");
   slider_handle.select('text').text(timeFormat(value));
+}
+
+function updated(){
+
+}
+
+function timeZoomed(){
+	var new_timeScale = d3.event.transform.rescaleX(timeScale);
+	axisG.call(timeAxis.scale(new_timeScale));
+	console.log('zoomed');
+
 }
 </script>
 
