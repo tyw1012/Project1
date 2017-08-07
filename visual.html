@@ -122,7 +122,7 @@ var brush = d3.svg.brush()
   .on("brush", brushed);
 
 
-var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 200)')
+var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(10, 200)')
 .call(timeAxis);
 
 axisG.select(".domain")
@@ -135,6 +135,11 @@ axisG.select(".domain")
 
 
 var sliderG = boardSVG.append('g').attr('class','slider').call(brush);
+
+sliderG.select('.background').attr('height',400);
+sliderG.select('.extent').attr('height',400).attr('fill','skyblue');
+sliderG.selectAll('.resize rect').style('visibility', 'visible');
+
 
 var slider_handle = sliderG.append('g').attr('class','handle')
 
@@ -445,7 +450,7 @@ function brushed() {
 
   if (d3.event.sourceEvent) { // not a programmatic event
     value = timeScale.invert(d3.mouse(this)[0]);
-    brush.extent([value, value]);
+    // brush.extent([value, value]);
   }
 
   slider_handle.attr("transform", "translate(" + timeScale(value) + ",0)");
