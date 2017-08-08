@@ -1,41 +1,171 @@
 <!DOCTYPE html>
-<html>
+<style type="text/css">
+*{
+	margin:0;
+	padding:0;
+	list-style:none;
+
+}
+.mapClicked{
+	fill: #FCCF6E; stroke: #eee; stroke-width : 0.5;
+}
+.mapNotClicked{
+	fill: #daa; stroke: #eee; stroke-width : 0.5;
+}	
+.circleClicked{
+	fill: #ccccff
+}
+
+.circleNotClicked{
+	fill: #004080;
+}
+.mapHovered{
+	fill: #F29C3A;
+
+}
+
+.circleHighlighted{
+	fill: #ff6666; 
+}
+
+.intersected{
+	fill: #6542f4;
+}
+
+.axis .halo {
+  stroke: gray;
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+
+.slider .handle path {
+  stroke: white;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+</style>
+
+
+<html style ="height:100%">
+
 <head>
 	<title></title>
 </head>
-<body>
-<div id = 'main'></div>
+<body style ="height: 100%; margin: 0; font-size:11px">
+<div id = 'main' style="width:72%; height:100%; float:left; overflow:hidden;"></div>
+
+<div id = 'board' style = "width:28%; height:100%; float:left; background: #abb; overflow:auto">
+	<!-- <div id = 'circleboard' style = "width: 50px; height:100%; float:left; background : #aaa; overflow:auto"></div> -->
+
+</div>
 <script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+
+<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
+<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
 <script type="text/javascript">
 
-var width = 1920, height = 1000;
-var margin = {top: 20, bottom: 20, left: 20, right: 20};
 
+var width = 1920; var height = 1000;
+// var margin = {top: 20, bottom: 20, left: 20, right: 20};
+var timeFormat = d3.timeFormat("%Y %b");
 var circle_clicked = false;
-var map_clicked = false;
+var map_clicked = 0;
+var dflt_radius = 1.5;
 
 var zoom = d3.behavior.zoom()
-		   .scaleExtent([1,5])
-		   .on("zoom", moveAndZoom);
+    .scaleExtent([1, 10])
+    .on("zoom", zoomed);
+
+
+// var zoom = d3.behavior.zoom()
+// 		   .scaleExtent([1,5])
+// 		   .on("zoom", moveAndZoom);
 	
 var svg = d3.select('#main').append('svg')
-	.attr('width', width)
-	.attr('height', height)
+	.attr('width', '100%')
+	.attr('height', '100%')
+	// .attr('fill','blue')
 	.call(zoom);
 
 var g_map = svg.append('g')
-	.attr('width', width)
-	.attr('height', height);
+	// .attr('width', width)
+	// .attr('height', height)		
+	// .attr('fill', 'blue');
+
+// var g_board = svg.append('g')
+//     .attr('width', 500)
+//     .attr('height', height);
 	
+var boardSVG_circle = d3.select('#board').append('svg').attr('height','100%').attr('width','17%').style('overflow','auto').classed('boardCircle',true)
+var boardSVG = d3.select('#board').append('svg').attr('height', '100%').attr('width', '83%').style('overflow','auto').classed('boardMain',true);
 
 var projection = d3.geo.mercator()
 	.scale(265)
-	.center([0, 25])
-	.translate([width/2 - 50 , height/2]);
+	.center([0, 35])
+	.translate([width/2 -150 , height/2]);
 var path = d3.geo.path().projection(projection);
 
+var timeScale = d3.time.scale()
+  .domain([new Date('1946-03'), new Date('1991-12')])
+  .range([20, d3.select('.boardMain').style('width').replace('px','')-30])
+  // .clamp(true);
 
+var timeZoom = d3.behavior.zoom().scaleExtent([1, 10])
+      .x(timeScale).on('zoom', timeZoomed )
+
+
+
+
+var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',d3.select('.boardMain').style('width').replace('px','')).attr('height',d3.select('.boardMain').style('height').replace('px','')).style('visibility','invisible').style('fill-opacity', 0.1).call(timeZoom);
+
+
+
+
+var timeAxis = d3.svg.axis().scale(timeScale).orient('bottom').ticks(3)
+			   .tickFormat(timeFormat).tickSize(0).tickPadding(12)
+			   // .tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
+
+var startValue = timeScale(new Date('1946-03'));
+startingValue = new Date('1946-03');
+
+var brush = d3.svg.brush()
+  .x(timeScale)
+  .extent([startingValue, startingValue])
+  .on("brush", brushed);
+
+
+var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(10, 200)')
+.call(timeAxis);
+
+axisG.select(".domain")
+  .select(function() {
+    console.log(this);
+    return this.parentNode.appendChild(this.cloneNode(true));
+  })
+  .attr("class", "halo");
+
+
+
+var sliderG = boardSVG.append('g').attr('class','slider').call(brush);
+
+sliderG.select('.background').attr('height',400);
+sliderG.select('.extent').attr('height',400).attr('fill','skyblue');
+sliderG.selectAll('.resize rect').style('visibility', 'visible');
+
+
+var slider_handle = sliderG.append('g').attr('class','handle')
+
+slider_handle.append('path').attr('transform','translate(10,200)')
+.attr('d', 'M 0 -20 V 20');
+
+slider_handle.append('text').text(startingValue).attr('transform', 'translate(0,200)')
+
+sliderG
+  .call(brush.event);
 
 
 queue()
@@ -67,17 +197,17 @@ for (var i = 0; i<= data.length-1; i++){
 			else{
 				data[i].countries_B.push(data[i].values[j].ccode);	
 			}
-			
-
 		}
-
 		data[i].DispNum = data_2[i].DispNum3;
 		data[i].StYear = data_2[i].StYear;
 		data[i].StMon = data_2[i].StMon;
 		data[i].EndYear = data_2[i].EndYear;
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
-		data[i].lon = data_3[i].longitude
+		data[i].lon = data_3[i].longitude;
+		data[i].Start = data[i].StYear + '-' + data[i].StMon
+		// data[i].clicked = false
+		// data[i].highlighted = false
 		
 		delete data[i].key;
 		delete data[i].values;
@@ -85,18 +215,17 @@ for (var i = 0; i<= data.length-1; i++){
 
 console.log(data);
 
-
-var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1});
+var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && !(d.properties.COWCODE == 365 && (d.properties.COWEYEAR ==1991))});
 	
 for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
+	features[i].highlighted = false;
 }
-
 	
 var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.attr('d', path)
 		.attr('vector-effect', 'non-scaling-stroke')
-		.style({fill: 'orange', stroke: 'white', strokewidth : 0.2})
+		.classed('mapNotClicked', true)
 		.on('mouseover', mouseoverMap)
 		.on('mouseout', mouseoutMap)
 		.on('click', selectMap)
@@ -106,29 +235,30 @@ var circles = g_map.selectAll('circle')
 			 .data(data)
 			 .enter()
 			 .append('circle')
+			 
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
+			 .classed('circleNotClicked', true)
 			 .on('mouseover', mouseoverCircle)
 			 .on('mouseout', mouseoutCircle)
 			 .on('click', selectCircle)
 			 .transition()
 			 .delay((d, i) => i*0.2)
 			 .duration(1000)
-			 .attr('r', 2.5)
+			 .attr('r', 3.5)
 			 .transition()
 			 .duration(500)
-			 .attr('r', 1.2)
-			 .style({fill:'purple', strokewidth: 0});
-			 
+			 .attr('r', dflt_radius);
+			 // .attr('class', 'circleNotClicked');
+
+
+
+
 
 
 
 })
-
-
-
-
 
 function moveAndZoom() {
             var t = d3.event.translate;
@@ -143,85 +273,154 @@ function moveAndZoom() {
                 h * (s - 1) + h * s,
                 Math.max(height * (1 - s) - h * s, t[1]));
 
-            g_map.style("stroke-width", ((1 / s) * 2) + "px");
+            // g_map.style("stroke-width", ((1 / s) * 2) + "px");
             g_map.attr('transform', 'translate(' + x + ',' + y + ')scale(' + s + ')');
         }
 
 function mouseoverMap(d){
   // Highlight hovered province
-  if (d.clicked == false){
-   d3.select(this).style('fill', 'pink');
+  if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted') ){
+   d3.select(this).classed('mapHovered', true );
 
   }
-   console.log(d)
-  // Draw effects
-}
-
-function mouseoverCircle(d){
-  // Highlight hovered province
-
-   d3.select(this).attr('r', 3.5);
-  
+    console.log(d)
   // Draw effects
 }
 
 function mouseoutMap(d){
-	if (d.clicked == false){
-		d3.select(this).style('fill', 'orange');
+	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted')){
+	d3.select(this).classed('mapHovered', false ).classed('mapNotClicked',true);
 	}
   
 }
 
+function mouseoverCircle(d){
+
+   d3.select(this).attr('r', 3.5);
+
+}
+
+
 function mouseoutCircle(d){
-  d3.select(this).attr('r', 1.2);
+
+	if(d3.select(this).classed('circleHighlighted') || d3.select(this).classed('circleClicked') || d3.select(this).classed('intersected')){
+		d3.select(this).attr('r', 3);
+	}
+	else{
+		d3.select(this).attr('r', dflt_radius);
+	}
+  
 }
 
 function selectCircle(d){
 
-	if (circle_clicked === false){
-
+	if (!circle_clicked ){
+	 g_map.selectAll('path').attr('class', null).classed('mapNotClicked',true);
 	 highlight(d.countries_A, d.countries_B)
 	 console.log("DispNum", d.DispNum)
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
+	 d3.selectAll('circle').attr('style',null).attr('class', null).classed('circleNotClicked', true).attr('r', dflt_radius);
+	 d3.select(this).attr('style', null).classed('circleNotClicked', false).classed('circleClicked', true).attr('r', 3);
+	 console.log(this);
 	 circle_clicked = true;
+	}
+	else{
+		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+		classed('mapClicked', false).classed('mapHighlighted', false);
+		d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
+		circle_clicked = false;
+
 	}
 
 }
 
 function selectMap(d){
-	if (circle_clicked){
-		g_map.selectAll('path').style({fill:'orange'})
-		circle_clicked = false;
-	}
-		
-	else {
 
-		if (!d.clicked){
+var fltr_circles = g_map.selectAll('circle').filter(function (d_){
+	return include(d_.countries_A, d.properties.COWCODE) ||
+	  	   include(d_.countries_B, d.properties.COWCODE)});
 
-		d3.select(this).style({fill:'skyblue'});
-		g_map.selectAll('circle').filter(
-			function (d_){ return include(d_.countries_A, d.properties.COWCODE) ||
-								  include(d_.countries_B, d.properties.COWCODE)	})
-			.attr('r', 3)
-			.style({fill:'green'});
-		d.clicked = true;
-   		console.log(d)		
-		}
-		else{
-			d.clicked = false
-		}
+	
+
+			if (circle_clicked ){
+				g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+				classed('mapClicked', false).classed('mapHighlighted', false);
+				d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
+				circle_clicked = false;
+				d.clicked = false;
+				
+			}
+				
+			else {
+
+				if (map_clicked == 0){
+
+						 
+							// console.log(this)
+							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+						
+							fltr_circles.attr('r', 3);
+							fltr_circles.attr('style',null).attr('class',null).classed('circleHighlighted', true);
+							console.log("fltr",fltr_circles);
+							d.clicked = true;
+							map_clicked = 1
+							// console.log(d)
+							drawCircle();
+
+				
+						
+				}
+
+				else{
+
+					if(map_clicked == 1){
+
+						if(!d3.select(this).classed('mapClicked'))
+						{
+							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+							d.clicked = true;
+							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('intersected',true).attr('r',3);
+							d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',dflt_radius);	
+							// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
+							map_clicked = 2;
+						}
+						else{
+
+							d.clicked = false
+							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
+
+							fltr_circles.attr('r', dflt_radius);
+							fltr_circles.attr('class', null).classed('circleNotClicked', true);
+							map_clicked = 0;
+							removeCircle();
+
+						}
+					}
+				    else{
+
+				    	g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+						classed('mapClicked', false).classed('mapHighlighted', false);
+						d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
+						circle_clicked = false;
+						d.clicked = false;
+						map_clicked = 0;
+
+
+				    }		
+				}		
+			}
 	}
-}
+
 
 function highlight(a,b){
 	g_map.selectAll('path').filter(
-		function(d){return include(a, d.properties.COWCODE)})
-		.style({fill: 'blue'});
+		function(d){ return include(a, d.properties.COWCODE)})
+		.style({fill: 'blue'}).style('fill-opacity', .3).classed('mapHighlighted', true);
 	g_map.selectAll('path').filter(
-		function(d){return include(b, d.properties.COWCODE)})
-		.style({fill: 'red'});
+		function(d){ return include(b, d.properties.COWCODE)})
+		.style({fill: 'red'}).style('fill-opacity', .3).classed('mapHighlighted', true);
 
 }
 
@@ -231,14 +430,64 @@ function include(arr, obj) {
     }
 }
 
-function selected(d){
+function zoomed() {
+  g_map.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
+
+function drawCircle(){
+	
+	var selectedCircles = d3.selectAll('.circleHighlighted')
+	boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2});
+	boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
+	boardSVG_circle.selectAll('circle').data(selectedCircles.data().sort(sortByDateAscending)).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 20} ).attr('r',0).attr('fill', '#ff6666').transition()
+			 .delay((d, i) => i*20)
+			 .duration(1000)
+			 .attr('r', 12);
+
+	console.log(selectedCircles.data().sort(sortByDateAscending))
+
+	// var displayedCircles = d3.select('#board').selectAll('circle')
+	// boardSVG.selectAll('rect').data(selectedCircles.data().sort(sortBydateAscending)).enter().append('rect').attr('x', 100).attr('y', function(d,i){return i*40+20}).attr('width',).attr('height', 24).
+}
+
+function removeCircle(){
+	boardSVG_circle.selectAll('circle').remove();
+	boardSVG_circle.attr('height', '100%');
+	boardSVG.attr('height', '100%');
+}
+
+function sortByDateAscending(a,b){
+	var parseTime = d3.timeParse("%Y-%m")
+	return parseTime(a.Start) - parseTime(b.Start)
 
 }
 
-</script>
+function brushed() {
+  var value = brush.extent()[0];
 
-	
-	
+  if (d3.event.sourceEvent) { // not a programmatic event
+    value = timeScale.invert(d3.mouse(this)[0]);
+    // brush.extent([value, value]);
+  }
+
+  slider_handle.attr("transform", "translate(" + timeScale(value) + ",0)");
+  slider_handle.select('text').text(timeFormat(value));
+}
+
+function updated(){
+
+}
+
+function timeZoomed(){
+
+
+  boardSVG.select('.x.axis').call(timeAxis)
+  boardSVG.select('.timezoom').call(timeZoom);
+  console.log('zoomed')
+
+}
+</script>
 
 	
 </body>
