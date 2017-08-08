@@ -53,7 +53,7 @@
 <head>
 	<title></title>
 </head>
-<body style ="height: 100%; margin: 0;">
+<body style ="height: 100%; margin: 0; font-size:11px">
 <div id = 'main' style="width:72%; height:100%; float:left; overflow:hidden;"></div>
 
 <div id = 'board' style = "width:28%; height:100%; float:left; background: #abb; overflow:auto">
@@ -113,7 +113,7 @@ var timeScale = d3.time.scale()
   .range([20, d3.select('.boardMain').style('width').replace('px','')-30])
   .clamp(true);
 
-var timeZoom = d3.behavior.zoom().scaleExtent([1, 25])
+var timeZoom = d3.behavior.zoom().scaleExtent([1, 20])
       .x(timeScale).on('zoom', timeZoomed )
 
 
@@ -124,7 +124,7 @@ var timeZoomBox = boardSVG.append('rect').attr('y',50).attr('width',d3.select('.
 
 
 
-var timeAxis = d3.svg.axis().scale(timeScale).orient('bottom')
+var timeAxis = d3.svg.axis().scale(timeScale).orient('bottom').ticks(3)
 			   .tickFormat(timeFormat).tickSize(0).tickPadding(12)
 			   // .tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
 
