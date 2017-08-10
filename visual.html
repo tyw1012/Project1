@@ -77,7 +77,7 @@ var timeFormat = d3.timeFormat("%Y %b");
 var circle_clicked = false;
 var map_clicked = 0;
 var dflt_radius = 1.5;
-
+var parseTime = d3.timeParse("%Y-%m")
 
 
 var zoom = d3.zoom()
@@ -129,7 +129,7 @@ var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -
 
 
 
-var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width).attr('height',bm_height).style('visibility','invisible').style('fill-opacity', 0.1).call(timeZoom);
+var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-30).attr('height',bm_height).style('visibility','invisible').style('fill-opacity', 0.1).call(timeZoom);
 
 
 
@@ -159,10 +159,11 @@ d3.select('.overlay').attr('width', bm_width-30).attr('height', 50);
 
 var newScale,
     range,
-    storedValue;
+    storedValue = [0, bm_width - 30];
 
 var timeRectsG = boardSVG.append('g').classed('timeRects',true)
 
+var tooltip = d3.select('body').append('div').attr('class','tooltip').style('opacity', 0);
 
 queue()
 	.defer(d3.json, "/public/worldmap.geojson")//world map
@@ -435,10 +436,12 @@ function zoomed() {
 
 function drawCircle(){
 
-	var parseTime = d3.timeParse("%Y-%m")
+	
 	var selectedCircles = d3.selectAll('.circleHighlighted')
 	boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2});
 	boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
+	d3.select('.timezoom').attr('height', function(d){return selectedCircles.data().length*40.2} )
+
 	boardSVG_circle.selectAll('circle').data(selectedCircles.data().sort(sortByDateAscending)).enter().append('circle').attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).attr('fill', '#ff6666').transition()
 			 .delay((d, i) => i*20)
 			 .duration(1000)
@@ -477,14 +480,20 @@ function sortByDateAscending(a,b){
 
 function brushed() {
    
-    // value = timeScale.invert(d3.mouse(this)[0]);
+       // value = timeScale.invert(d3.mouse(this)[0]);
+  if(newScale == undefined){
+  	range = d3.brushSelection(this).map(timeScale.invert);
+  }
+  else{
   range = d3.brushSelection(this).map(newScale.invert);
+	}
   console.log(range)
   // slider_handle.attr("transform", "translate(" + timeScale(value) + ",0)");
   timeTextG.select('text').text(timeFormat(range[0])+' to '+ timeFormat(range[1]));
 
   console.log(d3.brushSelection(this));
   storedValue = d3.brushSelection(this);
+
 }
 
 function updated(){
@@ -494,15 +503,20 @@ function updated(){
 function timeZoomed(){
 
   newScale = d3.event.transform.rescaleX(timeScale)
+
+  // console.log(d3.event.transform.rescaleX(timeScale));
   boardSVG.select('.x.axis').call(timeAxis.scale(newScale))
   
 
   console.log('zoomed')
   range = storedValue.map(newScale.invert);
+  console.log(storedValue);
   timeTextG.select('text').text(timeFormat(range[0])+' to '+ timeFormat(range[1]));
 
   // timeRectsG.attr('transform',`translate($(d3.event.transform.x), 0`);
   console.log(d3.event.transform.x);
+  timeRectsG.selectAll('rect').attr('x', function(d){return newScale(parseTime(d.Start))})
+  .attr('width', function(d){return newScale(parseTime(d.End)) - newScale(parseTime(d.Start))})
 
   // brushed();
 }
