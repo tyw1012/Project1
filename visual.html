@@ -7,34 +7,34 @@
 
 }
 .mapClicked{
-	fill: #FCCF6E; stroke: #eee; stroke-width : 0.5;
+	fill: #b5e3e5; stroke: #a9cbce; stroke-width : 0.5;
 }
 .mapNotClicked{
-	fill: #daa; stroke: #eee; stroke-width : 0.5;
+	fill: #e6f3f4; stroke: #a9cbce; stroke-width : 0.65;
 }	
 .circleClicked{
-	fill: #ccccff
+	fill: #ccccff; stroke: #fff; stroke-width : 0.3; 
 }
 
 .circleNotClicked{
-	fill: #004080;
+	fill: #014e66; stroke: #fff; stroke-width : 0.2; 
 }
 .mapHovered{
-	fill: #F29C3A;
+	fill: #c7ebed;
 
 }
 
 .circleHighlighted{
-	fill: #ff6666; 
+	fill: #ff6666; stroke: #fff ; stroke-width : 0.3; 
 }
 .circleDrawn{
-	fill: #394f68;
+	fill: #394f68; 
 }
 .circleFiltered{
-	fill: #aaa;
+	fill: #bc0124; stroke: #fff; stroke-width : 0.3; 
 }
 .intersected{
-	fill: #6542f4;
+	fill: #6542f4;stroke: #fff; stroke-width : 0.3; 
 }
 
 .axis .halo {
@@ -50,6 +50,9 @@
   pointer-events: none;
 }
 
+.transparent{
+	opacity : 0.13;
+}
 </style>
 
 
@@ -497,7 +500,6 @@ function removeCircle(){
 function sortByDateAscending(a,b){
 	var parseTime = d3.timeParse("%Y-%m")
 	return parseTime(a.Start) - parseTime(b.Start)
-
 }
 
 function brushed() {
@@ -519,8 +521,19 @@ function brushed() {
   console.log(new Date(d3.select('.circleHighlighted').data()[0].End));
 
   d3.selectAll('.circleHighlighted').filter(function(d)
-  	{return range[0]< new Date(d.Start)})
-  .classed('circleFiltered', true);
+  	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] )
+  		})
+
+  .classed('circleFiltered', true).attr('r', 5).classed('transparent', false);
+
+  d3.selectAll('.circleHighlighted').filter(function(d)
+  	{	return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ))
+  		})
+
+  .classed('circleFiltered', false).attr('r', 3.5).classed('transparent', true);
+
 
 }
 
