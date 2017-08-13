@@ -460,7 +460,7 @@ function drawCircle(){
 				 .duration(1000)
 				 .attr('r', 12);
 
-		timeRectsG.selectAll('rect').filter(function(d){return !(d3.select(this).classed('overlay')||d3.select(this).classed('selection')||d3.select(this).classed('handle')||d3.select(this).classed('timezoom'))})
+		timeRectsG.selectAll('rect')
 		.data(selectedCircles.data().sort(sortByDateAscending))
 		.enter()
 		.append('rect')
@@ -486,10 +486,10 @@ function drawCircle(){
 
 		console.log(data_intersected);
 
-		var newBind = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
+		var newBind_circle = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
 
-		newBind.exit().transition().attr('r', 0).remove();
-		newBind.transition().duration(1000).attr('cy', function(d,i){ return i * 40 + 70}).style('fill', '#6542f4' );
+		newBind_circle.exit().transition().attr('r', 0).remove();
+		newBind_circle.transition().duration(1000).attr('cy', function(d,i){ return i * 40 + 70}).style('fill', '#6542f4' );
 
 		// boardSVG_circle.selectAll('.circleDrawn').remove();
 
@@ -503,10 +503,16 @@ function drawCircle(){
 		// 		 .duration(1000)
 		// 		 .attr('r', 12);
 
-		timeRectsG.selectAll('rect').remove();
+		// timeRectsG.selectAll('rect').remove();
 
+		var newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum});
 
-	}
+		newBind_rect.exit().transition().attr('width', 0).remove();
+		newBind_rect.transition().duration(1000).attr('y',function(d,i){
+			return i * 40 + 60})
+		}
+
+	
 
 	// console.log(selectedCircles.data().sort(sortByDateAscending));
 
