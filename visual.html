@@ -152,15 +152,11 @@ var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -
 
 
 
-
-
-var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-50).attr('height',bm_height).style('visibility','invisible').style('fill-opacity', 0.1).call(timeZoom);
-
-
+var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-50).attr('height',bm_height).style('visibility','invisible').style('fill-opacity', 0.05).call(timeZoom);
 
 
 var timeAxis = d3.axisTop(timeScale).ticks(4)
-			   .tickFormat(timeFormat).tickSize(0).tickPadding(12)
+			   .tickFormat(timeFormat).tickSize(5).tickPadding(17)
 			   // .tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
 
 var startValue = timeScale(new Date('1946-03'));
@@ -170,18 +166,21 @@ var brush = d3.brushX()
 	.extent([[0,15],[bm_width- 30,bm_height]])
     .on("brush", brushed);
 
-var sliderSVG = boardSVG.append('svg').attr('class', 'slider').attr('width','100%').attr('height', 80);
+// var sliderSVG = boardSVG.append('svg').attr('class', 'slider').attr('width','100%').attr('height', 80);
 
 var brushableG = boardSVG.append('g').classed('brushable',true).call(brush);
 
-var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 50)').call(timeAxis);
+brushableG.select('.selection').attr('fill-opacity', 0.18)
+brushableG.select('.overlay').attr('width', bm_width-30).attr('height', 70);
+
+
+var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 40)').call(timeAxis);
 
 var timeTextG = d3.select('#board_text').append('svg').attr('width',
 	'100%').attr('height','100%').classed('timeText',true);
 
-timeTextG.append('text').text('Drag right below to set a time filter.').attr('x',20).attr('y',20);
+timeTextG.append('text').style('font-size', 13).text('Drag right below to set a time filter.').attr('x',20).attr('y',20);
 
-d3.select('.overlay').attr('width', bm_width-30).attr('height', 50);
 
 var newScale,
     range,
@@ -279,12 +278,12 @@ var circles = g_map.selectAll('circle')
 			 // .attr('class', 'circleNotClicked');
 
 
-boardSVG_circle.attr('height', function(d){return data.length*40.2});
-boardSVG.attr('height', function(d){return data.length*40.2});	
+boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
+boardSVG.attr('height', function(d){return data.length*40.2+7});	
 
 boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending)).enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('fill', '#014e66')
     .transition()
-	.delay((d, i) => i*5)
+	// .delay((d, i) => i*5)
 	.duration(1000)
 	.attr('r', 12);;
 
@@ -297,12 +296,12 @@ timeRectsG.selectAll('rect')
 		.attr('width', 0)
 		.attr('y', function(d,i){return i*40 + 60})
 		.transition()
-		.delay((d,i) => i*10)
 		.duration(700)
 		.attr('width',
-			 function(d){return newScale == undefined? timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)) : newScale(parseTime(d.End)) - newScale(parseTime(d.Start))})
+			 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
 		
 		.attr('height', 24)
+
 
 
 
@@ -354,7 +353,7 @@ function selectCircle(d){
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
-	 d3.selectAll('circle').attr('style',null).attr('class', null).classed('circleNotClicked', true).attr('r', dflt_radius);
+	 g_map.selectAll('circle').attr('style',null).attr('class', null).classed('circleNotClicked', true).attr('r', dflt_radius);
 	 d3.select(this).attr('style', null).classed('circleNotClicked', false).classed('circleClicked', true).attr('r', 3);
 	 console.log(this);
 	 circle_clicked = true;
@@ -362,7 +361,7 @@ function selectCircle(d){
 	else{
 		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
 		classed('mapClicked', false).classed('mapHighlighted', false);
-		d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
+		g_map.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 		circle_clicked = false;
 
 	}
@@ -375,14 +374,14 @@ var fltr_circles = g_map.selectAll('circle').filter(function (d_){
 	return include(d_.countries_A, d.properties.COWCODE) ||
 	  	   include(d_.countries_B, d.properties.COWCODE)});
 
-var allCircles;
+var allCircles, allRects;
 
 	
 
 			if (circle_clicked ){
 				g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
 				classed('mapClicked', false).classed('mapHighlighted', false);
-				d3.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
+				g_map.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 				circle_clicked = false;
 				d.clicked = false;
 				
@@ -437,15 +436,38 @@ var allCircles;
 							// d3.selectAll('.circleNotClicked').classed('transparent2', false);
 							map_clicked = 0;
 
+							boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
+							boardSVG.attr('height', function(d){return data.length*40.2+7});	
+
+							d3.select('.timezoom').attr('height', function(d){return data.length*40.2+7} )
+
+
 							allCircles = boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending), function(d){return d.DispNum})
 
 							allCircles.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#014e66');
 
 							allCircles.enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('fill', '#014e66')
 							    .transition()
-								.delay((d, i) => i*5)
 								.duration(1000)
 								.attr('r', 12);;
+
+
+							allRects = timeRectsG.selectAll('rect').data(data.sort(sortByDateAscending), function(d){return d.DispNum});
+
+							allRects.transition().duration(1000).attr('y',function(d,i){return i*40+60});
+
+							allRects.enter().append('rect').attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
+							.attr('width', 0)
+							.attr('y', function(d,i){return i*40 + 60})
+							.transition()
+							.duration(700)
+							.attr('width',
+								 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+							
+							.attr('height', 24)
+
+							brushableG.select('.selection').style('height', data.length*40.2+7 );
+							brushableG.select('.handle').style('height', data.length*40.2+7 );
 
 							// removeCircle();
 
@@ -457,6 +479,10 @@ var allCircles;
 				    	g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
 						classed('mapClicked', false).classed('mapHighlighted', false);
 						g_map.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
+
+						boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
+						boardSVG.attr('height', function(d){return data.length*40.2+7});	
+						d3.select('.timezoom').attr('height', function(d){return data.length*40.2+7} )
 						
 						allCircles = boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending), function(d){return d.DispNum})
 
@@ -464,12 +490,30 @@ var allCircles;
 
 						allCircles.enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('fill', '#014e66')
 						    .transition()
-							.delay((d, i) => i*5)
 							.duration(1000)
-							.attr('r', 12);;
+							.attr('r', 12);
+
+						allRects = timeRectsG.selectAll('rect').data(data.sort(sortByDateAscending), function(d){return d.DispNum});
+
+						allRects.transition().duration(1000).attr('y',function(d,i){return i*40+60});
+
+						allRects.enter().append('rect').attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
+						.attr('width', 0)
+						.attr('y', function(d,i){return i*40 + 60})
+						.transition()
+						.duration(700)
+						.attr('width',
+							 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+						
+						.attr('height', 24)
+
+						brushableG.select('.selection').style('height', data.length*40.2+7 );
+						brushableG.select('.handle').style('height', data.length*40.2+7 );
+
 
 						
-						timeRectsG.selectAll('rect').remove();
+
+						// timeRectsG.selectAll('rect').remove();
 						circle_clicked = false;
 						d.clicked = false;
 						map_clicked = 0;
@@ -506,15 +550,16 @@ function drawCircle(){
 
 	var selectedCircles;
 	var newBind_circle;
+	var newBind_rect;
 
 	if (map_clicked == 1){
 
 		selectedCircles = d3.selectAll('.circleHighlighted')
 		var data_highlighted = selectedCircles.data().sort(sortByDateAscending);
 
-		boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2});
-		boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
-		d3.select('.timezoom').attr('height', function(d){return selectedCircles.data().length*40.2} )
+		boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2+7});
+		boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2+7});
+		d3.select('.timezoom').attr('height', function(d){return selectedCircles.data().length*40.2+7} )
 
 		
 
@@ -523,23 +568,11 @@ function drawCircle(){
 		newBind_circle.exit().transition().attr('r', 0).remove();
 		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#ff6666');
 
-
-		timeRectsG.selectAll('rect')
-		.data(selectedCircles.data().sort(sortByDateAscending))
-		.enter()
-		.append('rect')
-		.attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
-		// .attr('y', )
-		.attr('width', 0)
-		.attr('y', function(d,i){return i*40 + 60})
-		.transition()
-		.delay((d,i) => i*50)
-		.duration(700)
-		.attr('width',
-			 function(d){return newScale == undefined? timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)) : newScale(parseTime(d.End)) - newScale(parseTime(d.Start))})
-		
-		.attr('height', 24)
-		 
+		newBind_rect = timeRectsG.selectAll('rect').data(data_highlighted, function(d){ return d.DispNum})
+		newBind_rect.exit().transition().attr('width', 0).remove();
+		newBind_rect.transition().duration(1000).attr('y', function(d,i){
+			return i * 40 + 60})
+			 
 
 		}
 
@@ -550,26 +583,17 @@ function drawCircle(){
 
 		console.log(data_intersected);
 
+		boardSVG_circle.attr('height', function(d){return data_intersected.length*40.2+7});
+		boardSVG.attr('height', function(d){return data_intersected.length*40.2+7});	
+
+
+
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
 
 		newBind_circle.exit().transition().attr('r', 0).remove();
 		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){ return i * 40 + 70}).style('fill', '#6542f4' );
 
-		// boardSVG_circle.selectAll('.circleDrawn').remove();
-
-		// selectedCircles = d3.selectAll('.intersected')
-		// boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2});
-		// boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2});
-		// d3.select('.timezoom').attr('height', function(d){return selectedCircles.data().length*40.2} )
-
-		// boardSVG_circle.selectAll('circle').data(selectedCircles.data().sort(sortByDateAscending)).enter().append('circle').classed('circleDrawn_int',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).attr('fill', '#ff6666').transition()
-		// 		 .delay((d, i) => i*20)
-		// 		 .duration(1000)
-		// 		 .attr('r', 12);
-
-		// timeRectsG.selectAll('rect').remove();
-
-		var newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum});
+		newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum});
 
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y',function(d,i){
@@ -580,15 +604,17 @@ function drawCircle(){
 
 	// console.log(selectedCircles.data().sort(sortByDateAscending));
 
-	brushableG.select('.selection').style('height', selectedCircles.data().length*40.2 );
-	brushableG.select('.handle').style('height', selectedCircles.data().length*40.2 );
+	brushableG.select('.selection').style('height', selectedCircles.data().length*40.2+7 );
+	brushableG.select('.handle').style('height', selectedCircles.data().length*40.2+7 );
 
-	brush.extent([[0,15],[bm_width-30, selectedCircles.data().length*40.2]]);
+	brush.extent([[0,15],[bm_width-30, selectedCircles.data().length*40.2+7]]);
 	brushableG.call(brush);
 
 	d3.select('.overlay').attr('width', bm_width-30).attr('height', 50);
 
+
 	
+	// brushableG.call(brush.event)
 	// var displayedCircles = d3.select('#board').selectAll('circle')
 	// boardSVG.selectAll('rect').data(selectedCircles.data().sort(sortBydateAscending)).enter().append('rect').attr('x', 100).attr('y', function(d,i){return i*40+20}).attr('width',).attr('height', 24).
 }
@@ -607,12 +633,13 @@ function sortByDateAscending(a,b){
 
 function brushed() {
    
-  range = newScale == undefined ? d3.brushSelection(this).map(timeScale.invert)
+   range = newScale == undefined ? d3.brushSelection(this).map(timeScale.invert)
      		: d3.brushSelection(this).map(newScale.invert);
 
   console.log(range)
   // slider_handle.attr("transform", "translate(" + timeScale(value) + ",0)");
-  timeTextG.select('text').text('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
+  timeTextG.select('text').html('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
+
 
   console.log(d3.brushSelection(this));
   storedValue = d3.brushSelection(this);
@@ -700,7 +727,7 @@ function timeZoomed(){
   // timeRectsG.attr('transform',`translate($(d3.event.transform.x), 0`);
   console.log(d3.event.transform.x);
   timeRectsG.selectAll('rect').attr('x', function(d){return newScale(parseTime(d.Start))})
-  .attr('width', function(d){return newScale(parseTime(d.End)) - newScale(parseTime(d.Start))})
+  .attr('width', function(d){return d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
 
   // brushed();
 }
