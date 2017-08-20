@@ -240,7 +240,7 @@ for (var i = 0; i<= data.length-1; i++){
 
 console.log(data);
 
-var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && !(d.properties.COWCODE == 365 && (d.properties.COWEYEAR ==1991))});
+var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && d.properties.COWSYEAR <= 1991 && d.properties.COWEYEAR >= 1991});
 	
 for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
@@ -528,10 +528,10 @@ var allCircles, allRects;
 function highlight(a,b){
 	g_map.selectAll('path').filter(
 		function(d){ return include(a, d.properties.COWCODE)})
-		.style('fill','blue').classed('mapHighlighted', true);
+		.style('fill','#55a8ed').style('fill-opacity', 0.5).classed('mapHighlighted', true);
 	g_map.selectAll('path').filter(
 		function(d){ return include(b, d.properties.COWCODE)})
-		.style('fill', 'red').classed('mapHighlighted', true);
+		.style('fill', '#ef5169').style('fill-opacity', 0.5).classed('mapHighlighted', true);
 
 }
 
@@ -651,14 +651,14 @@ function brushed() {
 
   	g_map.selectAll('circle').filter(function(d){
   		return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
-  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] )
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
   	})
   	.style('opacity',null).classed('circleFiltered', true).classed('transparent', false).transition().attr('r', 4.5)
 
 
  	g_map.selectAll('circle').filter(function(d){
   		return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1]) ||
-  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ))
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   	})
   	.classed('circleFiltered', false).classed('transparent', true).style('opacity', 0.05).transition().attr('r', 3.5)
 
@@ -670,14 +670,14 @@ function brushed() {
 
   	d3.selectAll('.circleHighlighted').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
-  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] )
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
   		})
 
   .classed('circleFiltered', true).classed('transparent', false).transition().attr('r', 4.5)
 
   d3.selectAll('.circleHighlighted').filter(function(d)
   	{	return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
-  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ))
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   		})
 
   .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', 3.5);
@@ -688,14 +688,14 @@ function brushed() {
 
   	d3.selectAll('.intersected').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
-  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] )
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
   		})
 
   .classed('circleFiltered', true).classed('transparent', false).transition().attr('r', 4.5)
 
   d3.selectAll('.intersected').filter(function(d)
   	{	return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
-  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ))
+  			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   		})
 
   .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', 3.5);
