@@ -69,6 +69,19 @@
 	width: calc(100% - 60px);
 	height:100%;
 }
+
+.borderDiv{
+	position: fixed;
+	left: 50px; top: 50px;
+	height: 50px; width: 200px
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: crosshair;
+}
 </style>
 
 
@@ -78,7 +91,10 @@
 	<title></title>
 </head>
 <body style ="height: 100%; margin: 0; font-size:11px">
-<div id = 'main' style="width:72%; height:100%; float:left; overflow:hidden;"></div>
+<div id = 'main' style="width:72%; height:100%; float:left; overflow:hidden;">
+	
+
+</div>
 
 <div id = 'board' style = "width:27.3%; height:100%; float:left; background: #fff; overflow:auto; border-left: 1px solid #e5e2e2;">
 	<div id = 'board_header' style = "width:100%; height:60px"></div>
@@ -147,9 +163,12 @@ var timeScale = d3.scaleTime()
   .range([0, bm_width - 50])
   // .clamp(true);
 
+var map_timeScale = d3.scaleTime()
+  .domain([new Date('1946-03'), new Date('1991-12')])
+  .range([0, 250])
+
 var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -Infinity], [bm_width*0.93, Infinity]])
       .on('zoom', timeZoomed )
-
 
 
 var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-50).attr('height',bm_height).style('visibility','invisible').style('fill-opacity', 0.05).call(timeZoom);
@@ -158,6 +177,9 @@ var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).
 var timeAxis = d3.axisTop(timeScale).ticks(4)
 			   .tickFormat(timeFormat).tickSize(5).tickPadding(17)
 			   // .tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
+
+var map_timeAxis = d3.axisTop(map_timeScale).ticks(4)
+					.tickFormat(timeFormat).tickSize(0).tickValues
 
 var startValue = timeScale(new Date('1946-03'));
 startingValue = new Date('1946-03');
@@ -174,6 +196,18 @@ brushableG.select('.selection').attr('fill-opacity', 0.18)
 brushableG.select('.overlay').attr('width', bm_width-30).attr('height', 70);
 
 
+var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true)
+
+borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_timeScale.range()[1]).style('stroke-width', "5px").style('stroke', '#ddd')
+	.select(function(){return this.parentNode.appendChild(this.cloneNode(true));})
+	.attr('style', null)
+	.attr('class', 'track-overlay')
+	.call(d3.drag()
+        .on("start.interrupt", function() { borderSlider.interrupt(); })
+        .on("start drag", dragged));
+
+
+
 var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 40)').call(timeAxis);
 
 var timeTextG = d3.select('#board_text').append('svg').attr('width',
@@ -182,8 +216,8 @@ var timeTextG = d3.select('#board_text').append('svg').attr('width',
 timeTextG.append('text').style('font-size', 13).text('Drag right below to set a time filter.').attr('x',20).attr('y',20);
 
 
-var newScale,
-    range,
+var newScale, map_newScale,
+    range, map_range,
     storedValue = [0, bm_width - 50];
 
 var timeRectsG = boardSVG.append('g').classed('timeRects',true)
@@ -259,8 +293,7 @@ var map_path = g_map.selectAll('path').data(features).enter().append('path')
 var circles = g_map.selectAll('circle')
 			 .data(data)
 			 .enter()
-			 .append('circle')
-			 
+			 .append('circle')			 
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
@@ -637,14 +670,11 @@ function brushed() {
      		: d3.brushSelection(this).map(newScale.invert);
 
   console.log(range)
-  // slider_handle.attr("transform", "translate(" + timeScale(value) + ",0)");
+ 
   timeTextG.select('text').html('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
-
 
   console.log(d3.brushSelection(this));
   storedValue = d3.brushSelection(this);
-
-  // console.log(new Date(d3.select('.circleHighlighted').data()[0].End));
 
 
   if (map_clicked == 0){
@@ -661,8 +691,6 @@ function brushed() {
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   	})
   	.classed('circleFiltered', false).classed('transparent', true).style('opacity', 0.05).transition().attr('r', 3.5)
-
-
 
   }
 
@@ -702,12 +730,11 @@ function brushed() {
 
   }
 
-  
-
-
 }
 
-function updated(){
+function dragged(){
+	console.log('dragged')
+
 
 }
 
