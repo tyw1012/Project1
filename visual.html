@@ -72,7 +72,7 @@
 
 .borderDiv{
 	position: fixed;
-	left: 50px; top: 50px;
+	left: 50px; top: 30px;
 	height: 50px; width: 200px
 }
 
@@ -166,6 +166,7 @@ var timeScale = d3.scaleTime()
 var map_timeScale = d3.scaleTime()
   .domain([new Date('1946-03'), new Date('1991-12')])
   .range([0, 250])
+  .clamp(true);
 
 var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -Infinity], [bm_width*0.93, Infinity]])
       .on('zoom', timeZoomed )
@@ -196,7 +197,7 @@ brushableG.select('.selection').attr('fill-opacity', 0.18)
 brushableG.select('.overlay').attr('width', bm_width-30).attr('height', 70);
 
 
-var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true)
+var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(0,30)')
 
 borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_timeScale.range()[1]).style('stroke-width', "5px").style('stroke', '#ddd')
 	.select(function(){return this.parentNode.appendChild(this.cloneNode(true));})
@@ -204,8 +205,11 @@ borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_
 	.attr('class', 'track-overlay')
 	.call(d3.drag()
         .on("start.interrupt", function() { borderSlider.interrupt(); })
-        .on("start drag", dragged));
+        .on("start drag", function(){ dragged(map_timeScale.invert(d3.event.x)); }));
 
+var handle = borderSlider.insert("circle", ".track-overlay")
+    .attr("class", "handle")
+    .attr("r", 9);
 
 
 var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 40)').call(timeAxis);
@@ -216,7 +220,7 @@ var timeTextG = d3.select('#board_text').append('svg').attr('width',
 timeTextG.append('text').style('font-size', 13).text('Drag right below to set a time filter.').attr('x',20).attr('y',20);
 
 
-var newScale, map_newScale,
+var newScale, map_newScale, features, initial_features,
     range, map_range,
     storedValue = [0, bm_width - 50];
 
@@ -274,7 +278,10 @@ for (var i = 0; i<= data.length-1; i++){
 
 console.log(data);
 
-var features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && d.properties.COWSYEAR <= 1991 && d.properties.COWEYEAR >= 1991});
+ initial_features = mapData.features
+ features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && d.properties.COWSYEAR <= 1991 && d.properties.COWEYEAR >= 1991});
+ 
+ console.log(features)
 	
 for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
@@ -335,11 +342,8 @@ timeRectsG.selectAll('rect')
 		
 		.attr('height', 24)
 
-
-
-
-
 })
+
 
 
 function mouseoverMap(d){
@@ -732,8 +736,19 @@ function brushed() {
 
 }
 
-function dragged(){
+function dragged(h){
 	console.log('dragged')
+	handle.attr('cx', map_timeScale(h))
+
+	var now = map_timeScale.invert(map_timeScale(h))
+
+	console.log(now);
+
+	// console.log('features', initial_features)
+	var new_features = initial_features.filter(function(d){return new Date(d.properties.COWSYEAR + '-' + d.properties.COWSMONTH) <= now && new Date(d.properties.COWEYEAR + '-' + d.properties.COWEMONTH) >= now })
+
+	console.log('new', new_features)
+	// g_map.selectAll('path').data(new_features)
 
 
 }
@@ -744,7 +759,7 @@ function timeZoomed(){
 
   // console.log(d3.event.transform.rescaleX(timeScale));
   boardSVG.select('.x.axis').call(timeAxis.scale(newScale))
-  
+
 
   console.log('zoomed')
   range = storedValue.map(newScale.invert);
