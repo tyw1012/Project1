@@ -291,7 +291,7 @@ for (var i = 0; i <= features.length-1; i++){
 var map_path = g_map.selectAll('path').data(features).enter().append('path')
 		.attr('d', path)
 		.attr('vector-effect', 'non-scaling-stroke')
-		.classed('mapNotClicked', true)
+		.attr('class', 'map mapNotClicked')
 		.on('mouseover', mouseoverMap)
 		.on('mouseout', mouseoutMap)
 		.on('click', selectMap)
@@ -384,7 +384,7 @@ function mouseoutCircle(d){
 function selectCircle(d){
 
 	if (!circle_clicked ){
-	 g_map.selectAll('path').attr('class', null).classed('mapNotClicked',true);
+	 g_map.selectAll('path.map').attr('class', null).classed('map mapNotClicked',true);
 	 highlight(d.countries_A, d.countries_B, d);
 	 // drawPath(d.countries_A, d.countries_B);
 	 console.log("DispNum", d.DispNum)
@@ -397,7 +397,7 @@ function selectCircle(d){
 	 circle_clicked = true;
 	}
 	else{
-		g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).
 		classed('mapClicked', false).classed('mapHighlighted', false);
 		g_map.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 		circle_clicked = false;
@@ -417,7 +417,7 @@ var allCircles, allRects;
 	
 
 			if (circle_clicked ){
-				g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+				g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
 				classed('mapClicked', false).classed('mapHighlighted', false);
 				g_map.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 				circle_clicked = false;
@@ -436,7 +436,7 @@ var allCircles, allRects;
 
 							// console.log(this)
 							g_map.selectAll('circle').attr('class',null).style('opacity',null).classed('circleNotClicked', true).attr('r', dflt_radius);
-							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 						
 							
 							fltr_circles.attr('style',null).attr('class',null).classed('circleHighlighted', true).transition().attr('r',4);
@@ -456,7 +456,7 @@ var allCircles, allRects;
 
 						if(!d3.select(this).classed('mapClicked'))
 						{
-							d3.select(this).attr('style', null).attr('class', null).classed('mapClicked', true);
+							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
 							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('intersected',true).transition().attr('r',2).transition().attr('r',4);
 							d3.selectAll('.circleHighlighted').attr('class', null).classed('circleNotClicked',true).attr('r',dflt_radius);	
@@ -514,7 +514,7 @@ var allCircles, allRects;
 					}
 				    else{
 
-				    	g_map.selectAll('path').attr('style', null).classed('mapNotClicked', true).
+				    	g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
 						classed('mapClicked', false).classed('mapHighlighted', false);
 						g_map.selectAll('circle').attr('style',null).attr('class',null).classed('circleNotClicked', true).attr('r', dflt_radius);
 
@@ -565,24 +565,69 @@ var allCircles, allRects;
 
 function highlight(a,b,circle_data){
 
-	var a_path = g_map.selectAll('path').filter(
+	var a_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(a, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		a_path.transition()
 		.style('fill','#55a8ed').style('fill-opacity', 0.5);
 	
-	var b_path = g_map.selectAll('path').filter(
+	var b_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(b, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		b_path.transition()
 		.style('fill', '#ef5169').style('fill-opacity', 0.5)
 
-		// console.log(a_path.data())
-	var a_centroid = path.centroid(a_path.data()),
-		b_centroid = path.centroid(b_path.data());
-	
-	var circle_coord = projection(circle_data.lon, circle_data.lat)
+		console.log(a_path.data())
+	var a_centroid = [],
+		b_centroid = [],
+		line_data_a = [],
+		line_data_b = [];
 
-	// var line = d3.line()
-	// 		  .x()
+	var circle_coord = projection([circle_data.lon, circle_data.lat]);
+	console.log("cent", path.centroid(a_path.data()[0]));
+	for (var i = 0; i <= a_path.data().length-1; i++ ){
+		a_centroid.push(path.centroid(a_path.data()[i]));
+
+		line_data_a.push(
+			[{'x': a_centroid[i][0],
+			  'y': a_centroid[i][1]}
+			   ,
+			 {'x': circle_coord[0],
+			  'y': circle_coord[1]}]
+						  )
+	}	
+	
+	for (var i = 0; i <= b_path.data().length-1; i++ ){
+		b_centroid.push(path.centroid(b_path.data()[i]));
+
+		line_data_b.push(
+			[{'x': b_centroid[i][0],
+			  'y': b_centroid[i][1]}
+			   ,
+			 {'x': circle_coord[0],
+			  'y': circle_coord[1]}]
+						  )
+	}
+
+
+	console.log(line_data_a)
+	console.log(circle_coord)
+
+	var line = d3.line()
+			  .x(function(d){return d.x;})
+			  .y(function(d){return d.y;})
+			  
+
+    for (var i = 0; i <= line_data_a.length-1; i++ ){
+
+    var lineGraph = g_map.append('path');
+
+    lineGraph.attr('d', line(line_data_a[i]))
+    		 .attr('stroke','blue')
+    		 .attr('stroke-width', 2)
+
+
+    }
+
+    
 
 }
 
@@ -767,14 +812,14 @@ function dragged(h){
 
 	console.log('new', new_features)
 
-	var newBind_path = g_map.selectAll('path').data(new_features)
+	var newBind_path = g_map.selectAll('path.map').data(new_features)
 
 	newBind_path.exit().remove();
 
 	newBind_path.enter().insert('path', '.circleNotClicked').merge(newBind_path)
 	.attr('d', path)
 	.attr('vector-effect', 'non-scaling-stroke')
-	.classed('mapNotClicked', true)
+	.classed('map mapNotClicked', true)
 	.on('mouseover', mouseoverMap)
 	.on('mouseout', mouseoutMap)
 	.on('click', selectMap)
