@@ -164,7 +164,7 @@ var timeScale = d3.scaleTime()
   // .clamp(true);
 
 var map_timeScale = d3.scaleTime()
-  .domain([new Date('1946-03'), new Date('1991-12')])
+  .domain([new Date('1946-03'), new Date('1991-12-31')])
   .range([0, 250])
   .clamp(true);
 
@@ -278,7 +278,7 @@ for (var i = 0; i<= data.length-1; i++){
 
 console.log(data);
 
- initial_features = mapData.features
+ initial_features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && d.properties.COWSYEAR <= 1991})
  features = mapData.features.filter(function(d){return d.properties.COWCODE !== -1 && d.properties.COWSYEAR <= 1991 && d.properties.COWEYEAR >= 1991});
  
  console.log(features)
@@ -385,7 +385,8 @@ function selectCircle(d){
 
 	if (!circle_clicked ){
 	 g_map.selectAll('path').attr('class', null).classed('mapNotClicked',true);
-	 highlight(d.countries_A, d.countries_B)
+	 highlight(d.countries_A, d.countries_B, d);
+	 // drawPath(d.countries_A, d.countries_B);
 	 console.log("DispNum", d.DispNum)
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
@@ -562,13 +563,30 @@ var allCircles, allRects;
 	}
 
 
-function highlight(a,b){
-	g_map.selectAll('path').filter(
-		function(d){ return include(a, d.properties.COWCODE)})
-		.style('fill','#55a8ed').style('fill-opacity', 0.5).classed('mapHighlighted', true);
-	g_map.selectAll('path').filter(
-		function(d){ return include(b, d.properties.COWCODE)})
-		.style('fill', '#ef5169').style('fill-opacity', 0.5).classed('mapHighlighted', true);
+function highlight(a,b,circle_data){
+
+	var a_path = g_map.selectAll('path').filter(
+		function(d){ return include(a, d.properties.COWCODE)}).classed('mapHighlighted', true)
+		a_path.transition()
+		.style('fill','#55a8ed').style('fill-opacity', 0.5);
+	
+	var b_path = g_map.selectAll('path').filter(
+		function(d){ return include(b, d.properties.COWCODE)}).classed('mapHighlighted', true)
+		b_path.transition()
+		.style('fill', '#ef5169').style('fill-opacity', 0.5)
+
+		// console.log(a_path.data())
+	var a_centroid = path.centroid(a_path.data()),
+		b_centroid = path.centroid(b_path.data());
+	
+	var circle_coord = projection(circle_data.lon, circle_data.lat)
+
+	// var line = d3.line()
+	// 		  .x()
+
+}
+
+function drawPath(a,b){
 
 }
 
@@ -748,9 +766,20 @@ function dragged(h){
 	var new_features = initial_features.filter(function(d){return new Date(d.properties.COWSYEAR + '-' + d.properties.COWSMONTH) <= now && new Date(d.properties.COWEYEAR + '-' + d.properties.COWEMONTH) >= now })
 
 	console.log('new', new_features)
-	// g_map.selectAll('path').data(new_features)
 
+	var newBind_path = g_map.selectAll('path').data(new_features)
 
+	newBind_path.exit().remove();
+
+	newBind_path.enter().insert('path', '.circleNotClicked').merge(newBind_path)
+	.attr('d', path)
+	.attr('vector-effect', 'non-scaling-stroke')
+	.classed('mapNotClicked', true)
+	.on('mouseover', mouseoverMap)
+	.on('mouseout', mouseoutMap)
+	.on('click', selectMap)
+
+	
 }
 
 function timeZoomed(){
