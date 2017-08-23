@@ -640,13 +640,15 @@ function highlight(a,b,circle_data){
 
     b_path = g_map.append('path');
 
-    b_path.attr('d', line(line_data_b[i])).style('visibility', 'invisible');
-    		 // .attr('stroke','red')
+    b_path.style('stroke-dasharray', '1,2').attr('d', line(line_data_b[i]))
     		 // .attr('stroke-width', 0.5)
+   	g_map.append('path').style('stroke','red').style('stroke-width', 0.5).attr('d', line(line_data_b[i])).transition().duration(1000).attrTween('stroke-dasharray', tweenDash);
 
-    var circle_b = g_map.append('circle').attr('r', 2).attr('fill','#ef5169').attr('transform', 'translate(' + b_centroid[i] + ')');
+   	// g_map.append('path').style('stroke','red').style('stroke-dasharray', 2,2).attrTween('d', tweenDash2);
 
-    circle_b.transition().duration(1300).attrTween('transform', translateAlong(b_path.node())).style('fill-opacity',0.7).transition().duration(500).style('fill-opacity',0)
+    // var circle_b = g_map.append('circle').attr('r', 2).attr('fill','#ef5169').attr('transform', 'translate(' + b_centroid[i] + ')');
+
+    // circle_b.transition().duration(1300).attrTween('transform', translateAlong(b_path.node())).style('fill-opacity',0.7).transition().duration(500).style('fill-opacity',0)
     // circle_b.transition().style('fill-opacity', 0.1); 
 
     }
@@ -654,11 +656,11 @@ function highlight(a,b,circle_data){
 
 }
 
-function transition(a){
-	a.transition().duration(700).attrTween('transform', translateAlong(b_path.node()))
+// function transition(a){
+// 	a.transition().duration(700).attrTween('transform', translateAlong(b_path.node()))
 
 
-}
+// }
 
 function include(arr, obj) {
     for(var i=0; i<=arr.length-1; i++) {
@@ -875,6 +877,7 @@ function timeZoomed(){
 
 function translateAlong(path) {
   var l = path.getTotalLength();
+  console.log('l',l)
   return function(d, i, a) {
     return function(t) {
       var p = path.getPointAtLength(t * l);
@@ -883,6 +886,22 @@ function translateAlong(path) {
   };
 }
 
+function tweenDash() {
+  var l = this.getTotalLength(),
+      i = d3.interpolateString("0," + l, l + "," + l);
+  return function(t) { return i(t); };
+}
+
+function tweenDash2() {
+	var d = this.attr('d')
+}
+
+function transitionA(path) {
+  path.transition()
+      .duration(7500)
+      .attrTween("stroke-dasharray", tweenDash)
+      .each("end", function() { d3.select(this).call(transitionA); });
+}
 </script>
 
 	
