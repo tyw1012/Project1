@@ -13,7 +13,7 @@
 	fill: #e6f3f4; stroke: #a9cbce; stroke-width : 0.65;
 }	
 .circleClicked{
-	fill: #ccccff; stroke: #fff; stroke-width : 0.3; 
+	fill: #6542f4; stroke: #fff; stroke-width : 0.3; 
 }
 
 .circleNotClicked{
@@ -23,7 +23,10 @@
 	fill: #c7ebed;
 
 }
-
+.mapHighlighted{
+	stroke: #fff; stroke-width : 0;
+	box-shadow: -20px -20px 20px black;
+}
 .circleHighlighted{
 	fill: #ff6666; stroke: #fff ; stroke-width : 0.3; 
 }
@@ -135,6 +138,15 @@ var svg = d3.select('#main').append('svg')
 	.attr('height', '100%')
 	// .attr('fill','blue')
 	.call(zoom);
+var filter = svg.append('defs').append('filter').attr('id','filter1');
+
+filter.append('feGaussianBlur').attr('result','blurOut').attr('in','SourceAlpha').attr('stdDeviation','1');
+filter.append('feOffset').attr('dx','1').attr('dy','1').attr('result','offsetblur');
+// filter.append('feBlend').attr('in','SourceGraphic').attr('in2','blurOut').attr('mode','normal');
+filter.append('feComponentTransfer').append('feFuncA').attr('type','linear').attr('slope', '0.3');
+var feMerge = filter.append('feMerge')
+feMerge.append('feMergeNode')
+feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
 
 var g_map = svg.append('g')
 	// .attr('width', width)
@@ -393,6 +405,9 @@ function selectCircle(d){
 
 	 g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
 	 d3.select(this).attr('style', null).classed('circleNotClicked', false).classed('circleClicked', true).attr('r', 3);
+
+	 twinkle(d3.select(this));
+
 	 console.log(this);
 	 circle_clicked = true;
 	}
@@ -406,6 +421,9 @@ function selectCircle(d){
 
 }
 
+function twinkle(circle){
+	circle.transition().duration(800).ease(d3.easeSinOut).attr('r', 6).transition().duration(800).ease(d3.easeSinIn).attr('r', 4).on('end', function(){ d3.select(this).call(twinkle); });
+}
 function selectMap(d){
 
 var fltr_circles = g_map.selectAll('circle.dispute').filter(function (d_){
@@ -568,99 +586,100 @@ function highlight(a,b,circle_data){
 	var a_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(a, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		a_path.transition()
-		.style('fill','#55a8ed').style('fill-opacity', 0.5);
+		.style('fill','#93d1f9')
+		// .style('fill-opacity', 0.5)
+		.attr('filter','url(#filter1)');
 	
 	var b_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(b, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		b_path.transition()
-		.style('fill', '#ef5169').style('fill-opacity', 0.5)
+		.style('fill', '#ffb760')
+		// .style('fill-opacity', 0.5)
+		.attr('filter','url(#filter1)');
 
-		console.log(a_path.data())
-	var a_centroid = [],
-		b_centroid = [],
-		line_data_a = [],
-		line_data_b = [],
-		a_path, b_path;
+	// 	console.log(a_path.data())
+	// var a_centroid = [],
+	// 	b_centroid = [],
+	// 	line_data_a = [],
+	// 	line_data_b = [],
+	// 	a_path, b_path;
 
-	var circle_coord = projection([circle_data.lon, circle_data.lat]);
+	// var circle_coord = projection([circle_data.lon, circle_data.lat]);
 
-	console.log("cent", path.centroid(a_path.data()[0]));
+	// console.log("cent", path.centroid(a_path.data()[0]));
 
-	for (var i = 0; i <= a_path.data().length-1; i++ ){
-		a_centroid.push(path.centroid(a_path.data()[i]));
+	// for (var i = 0; i <= a_path.data().length-1; i++ ){
+	// 	a_centroid.push(path.centroid(a_path.data()[i]));
 
-		line_data_a.push(
-			[{'x': a_centroid[i][0],
-			  'y': a_centroid[i][1]}
-			   ,
-			 {'x': circle_coord[0],
-			  'y': circle_coord[1]}]
-						  )
-	}	
+	// 	line_data_a.push(
+	// 		[{'x': a_centroid[i][0],
+	// 		  'y': a_centroid[i][1]}
+	// 		   ,
+	// 		 {'x': circle_coord[0]*0.8,
+	// 		  'y': }  
+	// 		 {'x': circle_coord[0],
+	// 		  'y': circle_coord[1]}]
+	// 					  )
+	// }	
 	
-	for (var i = 0; i <= b_path.data().length-1; i++ ){
-		b_centroid.push(path.centroid(b_path.data()[i]));
+	// for (var i = 0; i <= b_path.data().length-1; i++ ){
+	// 	b_centroid.push(path.centroid(b_path.data()[i]));
 
-		line_data_b.push(
-			[{'x': b_centroid[i][0],
-			  'y': b_centroid[i][1]}
-			   ,
-			 {'x': circle_coord[0],
-			  'y': circle_coord[1]}]
-						  )
-	}
+	// 	line_data_b.push(
+	// 		[{'x': b_centroid[i][0],
+	// 		  'y': b_centroid[i][1]}
+	// 		   ,
+	// 		 {'x': circle_coord[0],
+	// 		  'y': circle_coord[1]}]
+	// 					  )
+	// }
 
 
-	console.log(line_data_a)
-	console.log(circle_coord)
+	// console.log(line_data_a)
+	// console.log(circle_coord)
 
-	var line = d3.line()
-			  .x(function(d){return d.x;})
-			  .y(function(d){return d.y;})
-			  .curve(d3.curveCardinal)
+	// var line = d3.line()
+	// 		  .x(function(d){return d.x;})
+	// 		  .y(function(d){return d.y;})
+	// 		  .curve(d3.curveCardinal)
 			  
 
-    for (var i = 0; i <= line_data_a.length-1; i++ ){
+ //    for (var i = 0; i <= line_data_a.length-1; i++ ){
 
-    a_path = g_map.append('path');
+ //    a_path = g_map.append('path');
 
-    a_path.attr('d', line(line_data_a[i])).style('visibility', 'invisible');
-    		 // .attr('stroke','blue')
-    		 // .attr('stroke-width', 0.5)
+ //    a_path.attr('d', line(line_data_a[i])).style('visibility', 'invisible');
+ //    		 // .attr('stroke','blue')
+ //    		 // .attr('stroke-width', 0.5)
 
-    var circle_a = g_map.append('circle').attr('r', 2).attr('fill','#55a8ed').attr('transform', 'translate(' + a_centroid[i] + ')');
+ //    var circle_a = g_map.append('circle').attr('r', 2).attr('fill','#55a8ed').attr('transform', 'translate(' + a_centroid[i] + ')');
 
-    circle_a.transition().duration(1300).attrTween('transform', translateAlong(a_path.node())).style('fill-opacity',0.7).transition().duration(500).style('fill-opacity',0)		
+ //    circle_a.transition().duration(1300).attrTween('transform', translateAlong(a_path.node())).style('fill-opacity',0.7).transition().duration(500).style('fill-opacity',0)		
 
-    // circle_a.transition().style('fill-opacity', 0.1); 
+ //    // circle_a.transition().style('fill-opacity', 0.1); 
 
-    }
+ //    }
 
-    for (var i = 0; i <= line_data_b.length-1; i++ ){
+ //    for (var i = 0; i <= line_data_b.length-1; i++ ){
 
-    b_path = g_map.append('path');
+ //    b_path = g_map.append('path');
 
-    b_path.style('stroke-dasharray', '1,2').attr('d', line(line_data_b[i]))
-    		 // .attr('stroke-width', 0.5)
-   	g_map.append('path').style('stroke','red').style('stroke-width', 0.5).attr('d', line(line_data_b[i])).transition().duration(1000).attrTween('stroke-dasharray', tweenDash);
+ //    b_path.style('stroke-dasharray', '1,2').attr('d', line(line_data_b[i]))
+ //    		 // .attr('stroke-width', 0.5)
+ //   	g_map.append('path').style('stroke','red').style('stroke-width', 0.5).attr('d', line(line_data_b[i])).transition().duration(1000).attrTween('stroke-dasharray', tweenDash);
 
-   	// g_map.append('path').style('stroke','red').style('stroke-dasharray', 2,2).attrTween('d', tweenDash2);
+ //   	// g_map.append('path').style('stroke','red').style('stroke-dasharray', 2,2).attrTween('d', tweenDash2);
 
-    // var circle_b = g_map.append('circle').attr('r', 2).attr('fill','#ef5169').attr('transform', 'translate(' + b_centroid[i] + ')');
+ //    // var circle_b = g_map.append('circle').attr('r', 2).attr('fill','#ef5169').attr('transform', 'translate(' + b_centroid[i] + ')');
 
-    // circle_b.transition().duration(1300).attrTween('transform', translateAlong(b_path.node())).style('fill-opacity',0.7).transition().duration(500).style('fill-opacity',0)
-    // circle_b.transition().style('fill-opacity', 0.1); 
+ //    // circle_b.transition().duration(1300).attrTween('transform', translateAlong(b_path.node())).style('fill-opacity',0.7).transition().duration(500).style('fill-opacity',0)
+ //    // circle_b.transition().style('fill-opacity', 0.1); 
 
-    }
+ //    }
     
 
 }
 
-// function transition(a){
-// 	a.transition().duration(700).attrTween('transform', translateAlong(b_path.node()))
-
-
-// }
 
 function include(arr, obj) {
     for(var i=0; i<=arr.length-1; i++) {
