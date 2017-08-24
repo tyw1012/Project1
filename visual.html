@@ -10,7 +10,7 @@
 	fill: #b5e3e5; stroke: #a9cbce; stroke-width : 0.5;
 }
 .mapNotClicked{
-	fill: #e6f3f4; stroke: #a9cbce; stroke-width : 0.65;
+	fill: #e6f3f4; stroke: #a9cbce; stroke-width : 0.65; 
 }	
 .circleClicked{
 	fill: #6542f4; stroke: #fff; stroke-width : 0.3; 
@@ -171,7 +171,7 @@ var projection = d3.geoMercator()
 var path = d3.geoPath().projection(projection);
 
 var timeScale = d3.scaleTime()
-  .domain([new Date('1946-03'), new Date('1991-12')])
+  .domain([new Date('1946-03'), new Date('1991-12-31')])
   .range([0, bm_width - 50])
   // .clamp(true);
 
@@ -207,6 +207,7 @@ var brushableG = boardSVG.append('g').classed('brushable',true).call(brush);
 
 brushableG.select('.selection').attr('fill-opacity', 0.18)
 brushableG.select('.overlay').attr('width', bm_width-30).attr('height', 70);
+// brushableG.call(brushed);
 
 
 var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(0,30)')
@@ -234,7 +235,8 @@ timeTextG.append('text').style('font-size', 13).text('Drag right below to set a 
 
 var newScale, map_newScale, features, initial_features,
     range, map_range,
-    storedValue = [0, bm_width - 50];
+    storedValue = [0, bm_width - 50],
+    storedSelection1, storedSelection2;
 
 var timeRectsG = boardSVG.append('g').classed('timeRects',true)
 
@@ -424,6 +426,7 @@ function selectCircle(d){
 function twinkle(circle){
 	circle.transition().duration(800).ease(d3.easeSinOut).attr('r', 6).transition().duration(800).ease(d3.easeSinIn).attr('r', 4).on('end', function(){ d3.select(this).call(twinkle); });
 }
+
 function selectMap(d){
 
 var fltr_circles = g_map.selectAll('circle.dispute').filter(function (d_){
@@ -432,8 +435,9 @@ var fltr_circles = g_map.selectAll('circle.dispute').filter(function (d_){
 
 var allCircles, allRects;
 
-	
 
+
+	
 			if (circle_clicked ){
 				g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
 				classed('mapClicked', false).classed('mapHighlighted', false);
@@ -447,24 +451,20 @@ var allCircles, allRects;
 
 				if (map_clicked == 0){
 
-						 	// if(range ==! undefined){
-
-						 	// 	range == undefined
-						 	// }
-
-							// console.log(this)
-							g_map.selectAll('circle.dispute').attr('class',null).style('opacity',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
+					 	storedSelection1 = d3.select(this);
+					 	// console.log('storedSelection', storedSelection1)
+						g_map.selectAll('circle.dispute').attr('class',null).style('opacity',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+						d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
+					
 						
-							
-							fltr_circles.attr('style',null).attr('class',null).classed('dispute circleHighlighted', true).transition().attr('r',4);
-							// d3.selectAll('.circleNotClicked').classed('transparent2',true);
-							console.log("fltr",fltr_circles);
-							d.clicked = true;
-							map_clicked = 1
-							// console.log(d)
-							drawCircle();
-							// brush.extent()
+						fltr_circles.attr('style',null).attr('class',null).classed('dispute circleHighlighted', true).transition().attr('r',4);
+						// d3.selectAll('.circleNotClicked').classed('transparent2',true);
+						console.log("fltr",fltr_circles);
+						d.clicked = true;
+						map_clicked = 1
+						// console.log(d)
+						drawCircle();
+						// brush.extent()
 	
 				}
 
@@ -474,6 +474,7 @@ var allCircles, allRects;
 
 						if(!d3.select(this).classed('mapClicked'))
 						{
+							storedSelection2 = d3.select(this);
 							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
 							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('dispute intersected',true).transition().attr('r',2).transition().attr('r',4);
@@ -706,8 +707,7 @@ function drawCircle(){
 		boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2+7});
 		boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2+7});
 		d3.select('.timezoom').attr('height', function(d){return selectedCircles.data().length*40.2+7} )
-
-		
+	
 
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_highlighted, function(d){
 			return d.DispNum})
@@ -718,8 +718,7 @@ function drawCircle(){
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y', function(d,i){
 			return i * 40 + 60})
-			 
-
+		
 		}
 
 	else{
@@ -733,7 +732,6 @@ function drawCircle(){
 		boardSVG.attr('height', function(d){return data_intersected.length*40.2+7});	
 
 
-
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
 
 		newBind_circle.exit().transition().attr('r', 0).remove();
@@ -745,8 +743,6 @@ function drawCircle(){
 		newBind_rect.transition().duration(1000).attr('y',function(d,i){
 			return i * 40 + 60})
 		}
-
-	
 
 	// console.log(selectedCircles.data().sort(sortByDateAscending));
 
@@ -779,7 +775,7 @@ function sortByDateAscending(a,b){
 
 function brushed() {
    
-   range = newScale == undefined ? d3.brushSelection(this).map(timeScale.invert)
+   range = newScale == undefined ?  d3.brushSelection(this).map(timeScale.invert)
      		: d3.brushSelection(this).map(newScale.invert);
 
   console.log(range)
@@ -788,7 +784,7 @@ function brushed() {
 
   console.log(d3.brushSelection(this));
   storedValue = d3.brushSelection(this);
-
+  dragged(range[1]);
 
   if (map_clicked == 0){
 
@@ -809,6 +805,12 @@ function brushed() {
 
   else if (map_clicked == 1){
 
+  	var ggg = g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1.data()[0].properties.COWCODE}).attr('class', 'map mapClicked')
+  	console.log('storedSelection1', storedSelection1.data()[0].properties.COWCODE);
+  	console.log('ggg',ggg)
+
+  	console.log('stored1',storedSelection1.data()[0]);
+
   	d3.selectAll('.circleHighlighted').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
@@ -827,6 +829,10 @@ function brushed() {
 
   else {
 
+ //  	storedSelection1.attr('class', 'mapClicked');
+ //  	storedSelection2.attr('class', 'mapClicked');
+	// console.log('stored1',storedSelection2);
+
   	d3.selectAll('.intersected').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
@@ -843,6 +849,8 @@ function brushed() {
 
   }
 
+  
+  // handle.attr('cx', map_timeScale(range[1]))
 }
 
 function dragged(h){
@@ -865,6 +873,7 @@ function dragged(h){
 	newBind_path.enter().insert('path', '.circleNotClicked').merge(newBind_path)
 	.attr('d', path)
 	.attr('vector-effect', 'non-scaling-stroke')
+	.attr('class',null)
 	.classed('map mapNotClicked', true)
 	.on('mouseover', mouseoverMap)
 	.on('mouseout', mouseoutMap)
