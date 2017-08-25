@@ -90,6 +90,9 @@
   stroke: transparent;
   cursor: crosshair;
 }
+.timeText{
+	font-weight: bold;
+}
 </style>
 
 
@@ -107,8 +110,8 @@
 <div id = 'board' style = "width:27.3%; height:100%; float:left; background: #fff; overflow:auto; border-left: 1px solid #e5e2e2;">
 	<div id = 'board_header' style = "width:100%; height:60px"></div>
 	<div id = 'board_text' style = "width:100%; height: 30px"></div>
-	<div id = 'board_time' style = "width:100%; height: calc(85% - 90px); overflow:auto"></div>
-	<div id = 'board_info' style = "width:100%; height: 15%;"></div>	
+	<div id = 'board_time' style = "width:100%; height: calc(80% - 90px); overflow:auto"></div>
+	<div id = 'board_info' style = "width:100%; height: 20%;"></div>	
 
 </div>
 <script src="https://d3js.org/d3.v4.js"></script>
@@ -145,10 +148,10 @@ var svg = d3.select('#main').append('svg')
 	.call(zoom);
 var filter = svg.append('defs').append('filter').attr('id','filter1');
 
-filter.append('feGaussianBlur').attr('result','blurOut').attr('in','SourceAlpha').attr('stdDeviation','1');
-filter.append('feOffset').attr('dx','1').attr('dy','1').attr('result','offsetblur');
+filter.append('feGaussianBlur').attr('result','blurOut').attr('in','SourceAlpha').attr('stdDeviation','0.5');
+filter.append('feOffset').attr('dx','0.5').attr('dy','0.5').attr('result','offsetblur');
 // filter.append('feBlend').attr('in','SourceGraphic').attr('in2','blurOut').attr('mode','normal');
-filter.append('feComponentTransfer').append('feFuncA').attr('type','linear').attr('slope', '0.3');
+filter.append('feComponentTransfer').append('feFuncA').attr('type','linear').attr('slope', '0.2');
 var feMerge = filter.append('feMerge')
 feMerge.append('feMergeNode')
 feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
@@ -479,7 +482,25 @@ var allCircles, allRects;
 
 							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
-							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('dispute intersected',true).transition().attr('r',2).transition().attr('r',4);
+							var fltr_circles_int = fltr_circles.filter( function(){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('dispute intersected',true)
+
+							var fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
+								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1)) ||
+									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1))
+									}).classed('allied', true);
+
+							fltr_circles_int_allied.style('fill', '#ff9d0c');
+
+							var fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
+								return !(
+									   (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1)) ||
+									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1))
+									   )
+									}).classed('hostile', true);
+
+							fltr_circles_int_hostile.style('fill', 'red');
+
+							fltr_circles_int.transition().attr('r',2).transition().attr('r',4);
 							d3.selectAll('.circleHighlighted').attr('class', null).classed('dispute circleNotClicked',true).attr('r',dflt_radius);	
 							// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
 							map_clicked = 2;
@@ -528,9 +549,7 @@ var allCircles, allRects;
 							brushableG.select('.selection').style('height', data.length*40.2+7 );
 							brushableG.select('.handle').style('height', data.length*40.2+7 );
 
-							// removeCircle();
-
-
+						
 						}
 					}
 				    else{
@@ -568,9 +587,7 @@ var allCircles, allRects;
 
 						brushableG.select('.selection').style('height', data.length*40.2+7 );
 						brushableG.select('.handle').style('height', data.length*40.2+7 );
-
-
-						
+					
 
 						// timeRectsG.selectAll('rect').remove();
 						circle_clicked = false;
@@ -589,14 +606,16 @@ function highlight(a,b,circle_data){
 	var a_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(a, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		a_path.transition()
-		.style('fill','#93d1f9')
+		// .style('fill','#93d1f9')
+		.style('fill','#bbc5cc')
 		// .style('fill', '#c3e6f4')
 		.attr('filter','url(#filter1)');
 	
 	var b_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(b, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		b_path.transition()
-		.style('fill', '#ffb760')
+		// .style('fill', '#ffb760')
+		.style('fill','#dfd4d2')
 		// .style('fill', '#f9eac2')
 		.attr('filter','url(#filter1)');
 
@@ -697,7 +716,7 @@ function zoomed() {
 
 function drawCircle(){
 
-	var selectedCircles;
+	var selectedCircles, selectedCircles_allied, selectedCircles_hostile;
 	var newBind_circle;
 	var newBind_rect;
 
@@ -726,6 +745,20 @@ function drawCircle(){
 	else{
 
 		selectedCircles = d3.selectAll('.intersected')
+		selectedCircles_allied = d3.selectAll('.allied')
+		selectedCircles_hostile = d3.selectAll('.hostile')
+
+		
+		for (var i = 0; i<=selectedCircles_hostile.data().length-1; i++){
+			selectedCircles_hostile.data()[i].allied = false;
+		}
+
+		for (var i = 0; i<=selectedCircles_allied.data().length-1; i++){
+			selectedCircles_allied.data()[i].allied = true;
+			selectedCircles_hostile.data().push(selectedCircles_allied.data()[i]);
+		}
+
+
 		var data_intersected = selectedCircles.data().sort(sortByDateAscending)
 
 		console.log(data_intersected);
@@ -782,6 +815,7 @@ function brushed() {
 
   console.log(range)
  
+ // timeFormat()	
   timeTextG.select('text').html('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
 
   console.log(d3.brushSelection(this));
