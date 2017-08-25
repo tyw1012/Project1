@@ -7,10 +7,14 @@
 
 }
 .mapClicked{
-	fill: #b5e3e5; stroke: #a9cbce; stroke-width : 0.5;
+	/*fill: #b5e3e5;*/
+	fill: #c7ebed;
+	stroke: #a9cbce; stroke-width : 0.5;
 }
 .mapNotClicked{
-	fill: #e6f3f4; stroke: #a9cbce; stroke-width : 0.65; 
+	/*fill: #e6f3f4; */
+	fill: #f7fcfc;
+	stroke: #a9cbce; stroke-width : 0.65;  
 }	
 .circleClicked{
 	fill: #6542f4; stroke: #fff; stroke-width : 0.3; 
@@ -20,7 +24,8 @@
 	fill: #014e66; stroke: #fff; stroke-width : 0.2; opacity: 0.25; 
 }
 .mapHovered{
-	fill: #c7ebed;
+	/*fill: #c7ebed;*/
+	fill:#dcf7f7;
 
 }
 .mapHighlighted{
@@ -222,7 +227,7 @@ borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_
 
 var handle = borderSlider.insert("circle", ".track-overlay")
     .attr("class", "handle")
-    .attr("r", 9);
+    .attr("r", 8);
 
 
 var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 40)').call(timeAxis);
@@ -301,15 +306,11 @@ for (var i = 0; i <= features.length-1; i++){
 	features[i].clicked = false;
 	features[i].highlighted = false;
 }
-	
-var map_path = g_map.selectAll('path').data(features).enter().append('path')
-		.attr('d', path)
-		.attr('vector-effect', 'non-scaling-stroke')
-		.attr('class', 'map mapNotClicked')
-		.on('mouseover', mouseoverMap)
-		.on('mouseout', mouseoutMap)
-		.on('click', selectMap)
-		// .on('click', );
+
+
+dragged(new Date('1991-12-31'));
+
+console.log('scale', map_timeScale(new Date('1946-03')))
 
 var circles = g_map.selectAll('circle')
 			 .data(data)
@@ -451,7 +452,7 @@ var allCircles, allRects;
 
 				if (map_clicked == 0){
 
-					 	storedSelection1 = d3.select(this);
+					 	storedSelection1 = d3.select(this).data()[0].properties.COWCODE
 					 	// console.log('storedSelection', storedSelection1)
 						g_map.selectAll('circle.dispute').attr('class',null).style('opacity',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
 						d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
@@ -474,7 +475,8 @@ var allCircles, allRects;
 
 						if(!d3.select(this).classed('mapClicked'))
 						{
-							storedSelection2 = d3.select(this);
+							storedSelection2 = d3.select(this).data()[0].properties.COWCODE
+
 							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
 							fltr_circles.filter(function(d){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('dispute intersected',true).transition().attr('r',2).transition().attr('r',4);
@@ -588,14 +590,14 @@ function highlight(a,b,circle_data){
 		function(d){ return include(a, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		a_path.transition()
 		.style('fill','#93d1f9')
-		// .style('fill-opacity', 0.5)
+		// .style('fill', '#c3e6f4')
 		.attr('filter','url(#filter1)');
 	
 	var b_path = g_map.selectAll('path.mapNotClicked').filter(
 		function(d){ return include(b, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		b_path.transition()
 		.style('fill', '#ffb760')
-		// .style('fill-opacity', 0.5)
+		// .style('fill', '#f9eac2')
 		.attr('filter','url(#filter1)');
 
 	// 	console.log(a_path.data())
@@ -805,11 +807,11 @@ function brushed() {
 
   else if (map_clicked == 1){
 
-  	var ggg = g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1.data()[0].properties.COWCODE}).attr('class', 'map mapClicked')
-  	console.log('storedSelection1', storedSelection1.data()[0].properties.COWCODE);
-  	console.log('ggg',ggg)
+  	g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1}).attr('class', 'map mapClicked');
 
-  	console.log('stored1',storedSelection1.data()[0]);
+  
+
+  	console.log('stored1',storedSelection1);
 
   	d3.selectAll('.circleHighlighted').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
@@ -832,6 +834,10 @@ function brushed() {
  //  	storedSelection1.attr('class', 'mapClicked');
  //  	storedSelection2.attr('class', 'mapClicked');
 	// console.log('stored1',storedSelection2);
+
+	g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1 || d.properties.COWCODE == storedSelection2}).attr('class', 'map mapClicked');
+	
+
 
   	d3.selectAll('.intersected').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
@@ -857,7 +863,7 @@ function dragged(h){
 	console.log('dragged')
 	handle.attr('cx', map_timeScale(h))
 
-	var now = map_timeScale.invert(map_timeScale(h))
+	var now = h;
 
 	console.log(now);
 
