@@ -420,7 +420,13 @@ function selectCircle(d){
 
 	 twinkle(d3.select(this));
 
-	 console.log(this);
+	 var scrollHeight = d3.select('#board_time').property('scrollHeight');
+
+	 console.log('scroll',scrollHeight);
+
+	 d3.select('#board_time').transition().duration(1500).tween('scroll', scrollTopTween(scrollHeight));
+
+	 console.log('this', this);
 	 circle_clicked = true;
 	}
 	else{
@@ -432,6 +438,17 @@ function selectCircle(d){
 	}
 
 }
+
+function scrollTopTween(scrollTop) { 
+    return function() { 
+        var i = d3.interpolateNumber(document.getElementById('board_time').scrollTop, scrollTop); 
+        console.log(this.scrollTop);
+        return function(t) { document.getElementById('board_time').scrollTop = i(t);
+        	console.log('this2', this)
+        	console.log(this.scrollTop)}
+        	; 
+    }; 
+} 
 
 function twinkle(circle){
 	circle.transition().duration(800).ease(d3.easeSinOut).attr('r', 6).transition().duration(800).ease(d3.easeSinIn).attr('r', 4).on('end', function(){ d3.select(this).call(twinkle); });
