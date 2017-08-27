@@ -40,7 +40,7 @@
 
 
 .circleDrawn{
-	fill: #ff6666; 
+	fill: #014e66; 
 }
 
 .circleFiltered{
@@ -342,7 +342,10 @@ var circles = g_map.selectAll('circle')
 boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
 boardSVG.attr('height', function(d){return data.length*40.2+70});	
 
-boardSVG_circle.selectAll('circle.dispute').data(data.sort(sortByDateAscending)).enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('fill', '#014e66')
+boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending)).enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0)
+	.on('mouseover', mouseoverCircle_board)
+	.on('mouseout', mouseoutCircle_board)
+	.on('click', selectCircle_board)
     .transition()
 	// .delay((d, i) => i*5)
 	.duration(1000)
@@ -406,6 +409,54 @@ function mouseoutCircle(d){
   
 }
 
+
+function mouseoverCircle_board(d){
+
+   d3.select(this).attr('r', 14 );
+
+   if(!circle_clicked){
+	   if (map_clicked == 0){
+	   	g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	.transition().duration(150)
+	   	.attr('r',6);
+	   }
+
+	   else if (map_clicked == 1){
+	   	 g_map.selectAll('.circleHighlighted').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	.transition().duration(150)
+	   	.attr('r',6);
+	   }
+	   else{
+	   	g_map.selectAll('.intersected').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	.transition().duration(150)
+	   	.attr('r',6);
+	   }
+	}
+}
+
+function mouseoutCircle_board(d){
+
+	d3.select(this).attr('r', 12);
+
+	if(!circle_clicked){
+		 if (map_clicked == 0){
+	   	g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	.transition().duration(150)
+	   	.attr('r',dflt_radius);
+	     }
+	     else if (map_clicked == 1){
+	   	 g_map.selectAll('.circleHighlighted').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	.transition().duration(150)
+	   	.attr('r',dflt_radius);
+	    }
+	    else{
+	   	g_map.selectAll('.intersected').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	.transition().duration(150)
+	   	.attr('r',dflt_radius);
+	    }
+	}
+}
+
 function selectCircle(d){
 
 	if (!circle_clicked ){
@@ -437,6 +488,33 @@ function selectCircle(d){
 		circle_clicked = false;
 
 	}
+
+}
+
+function selectCircle_board(d){
+
+
+	if (!circle_clicked ){
+	 g_map.selectAll('path.map').attr('class', null).classed('map mapNotClicked',true);
+	 highlight(d.countries_A, d.countries_B, d);
+	 // drawPath(d.countries_A, d.countries_B);
+	 console.log("DispNum", d.DispNum)
+	 console.log("countriesA", d.countries_A)
+	 console.log("countriesB",d.countries_B);
+
+	 g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+	 
+	 twinkle(d3.select(this));
+
+	 g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum }).classed('circleClicked', true);
+
+	 twinkle(d3.select('.circleClicked'));
+	 circle_clicked = true;
+	}
+	 
+
+	 	// console.log('clicked')
+
 
 }
 
@@ -591,6 +669,9 @@ var allCircles, allRects;
 						allCircles.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#014e66');
 
 						allCircles.enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('fill', '#014e66')
+							.on('mouseover', mouseoverCircle_board)
+							.on('mouseout', mouseoutCircle_board)
+							.on('click', selectCircle_board)
 						    .transition()
 							.duration(1000)
 							.attr('r', 12);
