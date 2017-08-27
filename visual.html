@@ -358,6 +358,7 @@ timeRectsG.selectAll('rect')
 		.attr('y', function(d,i){return i*40 + 57.5})
 		.transition()
 		.duration(700)
+		// .attr('fill','#014e66')
 		.attr('width',
 			 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
 		
