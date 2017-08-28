@@ -43,6 +43,7 @@
 	fill: #014e66; 
 }
 
+
 .circleFiltered{
 	fill: #f4523d; stroke: #fff; stroke-width : 0.3; opacity: 1; 
 }
@@ -94,6 +95,7 @@
 }
 .timeText{
 	font-weight: bold;
+	/*color: #24393d;*/
 }
 </style>
 
@@ -194,7 +196,7 @@ var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -
       .on('zoom', timeZoomed )
 
 
-var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-50).attr('height',bm_height).style('visibility','invisible').style('fill-opacity', 0.05).call(timeZoom);
+var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-50).attr('height',bm_height).style('visibility','invisible').style('fill', '#e4eded').call(timeZoom);
 
 
 var timeAxis = d3.axisTop(timeScale).ticks(4)
@@ -482,8 +484,7 @@ function selectCircle(d){
 	 circle_clicked = true;
 	}
 	else{
-		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).
-		classed('mapClicked', false).classed('mapHighlighted', false);
+		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
 		g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
 		circle_clicked = false;
 
@@ -503,13 +504,22 @@ function selectCircle_board(d){
 	 console.log("countriesB",d.countries_B);
 
 	 g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-	 
-	 twinkle(d3.select(this));
 
-	 g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum }).classed('circleClicked', true);
+	 d3.select(this).classed('circleClicked',true)
+	 twinkle_big(d3.select(this));
 
-	 twinkle(d3.select('.circleClicked'));
+	 g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum }).attr('style',null).attr('class',null).classed('dispute circleClicked', true);
+
+	 twinkle(d3.select('.dispute.circleClicked'));
 	 circle_clicked = true;
+	}
+	else{
+	g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
+	d3.selectAll('.dispute.circleClicked').classed('circleClicked',false).classed('circleNotClicked',true);
+	d3.select('.circleDrawn.circleClicked').classed('circleClicked',false).classed('circleDrawn',true);
+
+	circle_clicked = false;
+
 	}
 	 
 
@@ -532,6 +542,11 @@ function scrollTopTween(scrollTop) {
 function twinkle(circle){
 	circle.transition().duration(800).ease(d3.easeSinOut).attr('r', 6).transition().duration(800).ease(d3.easeSinIn).attr('r', 4).on('end', function(){ d3.select(this).call(twinkle); });
 }
+
+function twinkle_big(circle){
+	circle.transition().duration(800).ease(d3.easeSinOut).attr('r', 16).transition().duration(800).ease(d3.easeSinIn).attr('r', 11).on('end', function(){ d3.select(this).call(twinkle_big); });
+}
+
 
 function selectMap(d){
 
