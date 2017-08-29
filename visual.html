@@ -8,7 +8,8 @@
 }
 .mapClicked{
 	/*fill: #b5e3e5;*/
-	fill: #c7ebed;
+	fill:#d6f2f7;
+	/*fill: #c7ebed;*/
 	stroke: #a9cbce; stroke-width : 0.5;
 }
 .mapNotClicked{
@@ -19,15 +20,17 @@
 	stroke: #a9cbce; stroke-width : 0.65;  
 }	
 .circleClicked{
-	fill: #6542f4; stroke: #fff; stroke-width : 0.3; 
+	fill: #dd0202; stroke: #fff; stroke-width : 0.3; 
 }
 
 .circleNotClicked{
-	fill: #014e66; stroke: #fff; stroke-width : 0.2; opacity: 0.25; 
+	fill: #014e66; stroke: #fff; stroke-width : 0.2; 
+	opacity: 0.3; 
 }
 .mapHovered{
 	/*fill: #c7ebed;*/
-	fill:#dcf7f7;
+	/*fill:#dcf7f7;*/
+	fill:#e5f9f9;
 
 }
 .mapHighlighted{
@@ -35,7 +38,11 @@
 	box-shadow: -20px -20px 20px black;
 }
 .circleHighlighted{
-	fill: #ff6666; stroke: #fff ; stroke-width : 0.3; 
+	/*fill: #ff6666;*/
+	/*fill:#0087a9;*/
+	fill:#ff7b4c;
+	/*fill: #bc4b4b;*/
+	 stroke: #fff ; stroke-width : 0.3; 
 }
 
 
@@ -79,11 +86,22 @@
 	width: calc(100% - 60px);
 	height:100%;
 }
+.t_rects{
+	fill:#03262d;
+}
 
 .borderDiv{
 	position: fixed;
-	left: 50px; top: 30px;
+	left: 50px; bottom: 35px;
 	height: 50px; width: 200px
+}
+.legendDiv{
+
+	position: fixed;
+	left: 325px;
+	bottom: 35px;
+	height: 50px;
+	width: 700px; 
 }
 
 .track-overlay {
@@ -95,6 +113,15 @@
 .timeText{
 	font-weight: bold;
 	/*color: #24393d;*/
+}
+circle.legend_high{
+	fill:#ff7b4c;
+}
+circle.legend_allied{
+
+}
+circle.legend_hostile{
+	fill: #ff6060;
 }
 </style>
 
@@ -131,7 +158,11 @@ var width = 1920; var height = 1000;
 var timeFormat = d3.timeFormat("%Y %b");
 var circle_clicked = false;
 var map_clicked = 0;
-var dflt_radius = 2.5;
+
+var dflt_radius = 2.5,
+	high_radius = 3.5,
+	int_radius = 4;
+
 var parseTime = d3.timeParse("%Y-%m")
 
 
@@ -235,6 +266,7 @@ var handle = borderSlider.insert("circle", ".track-overlay")
     .attr("class", "handle")
     .attr("r", 8);
 
+var legends = d3.select('#main').append('div').attr('class', 'legendDiv').append('svg').attr('width', '100%')
 
 var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 33.5)').call(timeAxis);
 
@@ -360,6 +392,7 @@ timeRectsG.selectAll('rect')
 		// .attr('y', )
 		.attr('width', 0)
 		.attr('y', function(d,i){return i*40 + 57.5})
+		.attr('class', 't_rects')
 		.transition()
 		.duration(700)
 		// .attr('fill','#014e66')
@@ -371,6 +404,8 @@ timeRectsG.selectAll('rect')
 brushableG.select('.selection').style('height', data.length*40.2+7 );
 brushableG.select('.handle').style('height', data.length*40.2+7 );
 
+
+drawLegends();
 })
 
 
@@ -394,20 +429,56 @@ function mouseoutMap(d){
 
 function mouseoverCircle(d){
 
-   d3.select(this).attr('r', 3.5);
+	if (map_clicked == 0){
+
+	 d3.select(this).attr('r', dflt_radius + 1 );	
+
+	}
+
+	else if(map_clicked == 1){
+
+		if(d3.select(this).classed('circleHighlighted')){
+			d3.select(this).attr('r', high_radius + 1);
+		}
+	}
+	else {
+
+		if(d3.select(this).classed('intersected')){
+			d3.select(this).attr('r', int_radius + 1 );
+		}
+	}
+
+  
 
 }
 
 
 function mouseoutCircle(d){
 
-	if(d3.select(this).classed('circleHighlighted') || d3.select(this).classed('circleClicked') || d3.select(this).classed('intersected')){
-		d3.select(this).attr('r', 3);
-	}
-	else{
-		d3.select(this).attr('r', dflt_radius);
-	}
-  
+	if (!d3.select(this).classed('circleClicked')){
+
+
+		if (map_clicked == 0){
+
+		 d3.select(this).attr('r', dflt_radius  );	
+
+		}
+
+		else if(map_clicked == 1){
+
+			if(d3.select(this).classed('circleHighlighted')){
+				d3.select(this).attr('r', high_radius );
+			}
+		}
+		else {
+
+			if(d3.select(this).classed('intersected')){
+				d3.select(this).attr('r', int_radius  );
+			}
+		}
+
+	
+ } 
 }
 
 
@@ -419,18 +490,18 @@ function mouseoverCircle_board(d){
 	   if (map_clicked == 0){
 	   	g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
-	   	.attr('r',6);
+	   	.attr('r', dflt_radius + 2);
 	   }
 
 	   else if (map_clicked == 1){
 	   	 g_map.selectAll('.circleHighlighted').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
-	   	.attr('r',6);
+	   	.attr('r', high_radius + 2);
 	   }
 	   else{
 	   	g_map.selectAll('.intersected').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
-	   	.attr('r',6);
+	   	.attr('r',int_radius + 2);
 	   }
 	}
 }
@@ -443,17 +514,17 @@ function mouseoutCircle_board(d){
 		 if (map_clicked == 0){
 	   	g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
-	   	.attr('r',dflt_radius);
+	   	.attr('r', dflt_radius);
 	     }
 	     else if (map_clicked == 1){
 	   	 g_map.selectAll('.circleHighlighted').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
-	   	.attr('r',dflt_radius);
+	   	.attr('r',high_radius);
 	    }
 	    else{
 	   	g_map.selectAll('.intersected').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
-	   	.attr('r',dflt_radius);
+	   	.attr('r', int_radius);
 	    }
 	}
 }
@@ -484,6 +555,7 @@ function selectCircle(d){
 	}
 	else{
 		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
+		g_map.select('.circleClicked').transition().attr('r', dflt_radius);
 		g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
 		circle_clicked = false;
 
@@ -520,7 +592,7 @@ function selectCircle_board(d){
 
 			g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).transition().attr('r', dflt_radius);
 
-			boardSVG_circle.selectAll('.circleClicked').classed('circleClicked',false).transition().attr('r', 12).style('fill', function(d){return map_clicked == 0? '#014e66' : map_clicked == 1? '#ff6666' : d.allied == true? '#ff9d0c' : 'red'});
+			boardSVG_circle.selectAll('.circleClicked').classed('circleClicked',false).transition().attr('r', 12).style('fill', function(d){return map_clicked == 0? '#014e66' : map_clicked == 1? '#ff7b4c' : d.allied == true? '#5b41f4' : '#ff6060'});
 
 			d3.select(this).attr('class',null).attr('style',null).classed('circleClicked',true);
 	 		twinkle_big(d3.select(this));
@@ -579,12 +651,15 @@ var allCircles, allRects;
 				
 				g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
 				classed('mapClicked', false).classed('mapHighlighted', false);
+				g_map.select('.circleClicked').transition().attr('r', dflt_radius)
 				g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-				circle_clicked = false;
+				
 				d.clicked = false;
-
+				
+				boardSVG_circle.select('.circleClicked').transition().attr('r', 12);
 				initialize();
 				map_clicked = 0;
+				circle_clicked = false;
 
 			}
 				
@@ -592,13 +667,13 @@ var allCircles, allRects;
 
 				if (map_clicked == 0){
 						
-					 	storedSelection1 = d3.select(this).data()[0].properties.COWCODE
+					 	storedSelection1 = d3.select(this).data()[0].properties
 					 	// console.log('storedSelection', storedSelection1)
 						g_map.selectAll('circle.dispute').attr('class',null).style('opacity',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
 						d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 					
 						
-						fltr_circles.attr('style',null).attr('class',null).classed('dispute circleHighlighted', true).transition().attr('r',4);
+						fltr_circles.attr('style',null).attr('class',null).classed('dispute circleHighlighted', true).transition().attr('r',3.5);
 						// d3.selectAll('.circleNotClicked').classed('transparent2',true);
 						console.log("fltr",fltr_circles);
 						d.clicked = true;
@@ -606,6 +681,16 @@ var allCircles, allRects;
 						// console.log(d)
 						drawCircle();
 						// brush.extent()
+
+						if (document.querySelector('.circleHighlighted') !== null) {
+
+	   						legends.append('circle').attr('class','legend_high').attr('r', 7).attr('cx', 200).attr('cy', 30).style('fill', '#ff7b4c');
+							legends.append('text').attr('class','legend_high').text(' Dispute Where '+d.properties.CNTRY_NAME+' was Involved').attr('x',215).attr('y',34);
+
+						}
+
+					
+
 	
 				}
 
@@ -622,27 +707,42 @@ var allCircles, allRects;
 							var fltr_circles_int = fltr_circles.filter( function(){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('dispute intersected',true)
 
 							var fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
-								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1)) ||
-									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1))
+								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
+									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									}).classed('allied', true);
 
-							fltr_circles_int_allied.style('fill', '#ff9d0c');
+							fltr_circles_int_allied.style('fill', '#5b41f4');
 
 							var fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
 								return !(
-									   (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1)) ||
-									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1))
+									   (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
+									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									   )
 									}).classed('hostile', true);
 
-							fltr_circles_int_hostile.style('fill', 'red');
+							fltr_circles_int_hostile.style('fill', '#ff6060');
 
 							fltr_circles_int.transition().attr('r',2).transition().attr('r',4);
 							d3.selectAll('.circleHighlighted').attr('class', null).classed('dispute circleNotClicked',true).attr('r',dflt_radius);	
 							// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
 							map_clicked = 2;
 							drawCircle();
+
+							if (document.querySelector('.intersected.hostile') !== null) {
+
+								legends.select('circle.legend_high').attr('style',null).attr('class','legend_hostile')
+								legends.select('text.legend_high').attr('class','legend_hostile').text('Dipute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile')
+							}
+
+							if (document.querySelector('.intersected.allied') !== null) {
+
+								legends.append('circle').attr('class','legend_allied').attr('r', 7).attr('cx', 475).attr('cy', 30).style('fill', '#5b41f4');
+								legends.append('text').attr('class','legend_allied').text('Dipute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',490).attr('y',34);
+
+							}
+
 						}
+
 						else{
 
 							d.clicked = false
@@ -654,6 +754,8 @@ var allCircles, allRects;
 							map_clicked = 0;
 
 							initialize();
+							legends.selectAll('.legend_high').remove();
+							
 
 						
 						}
@@ -665,6 +767,9 @@ var allCircles, allRects;
 						g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
 
 						initialize();
+
+						legends.selectAll('.legend_hostile').remove();
+						legends.selectAll('.legend_allied').remove();
 											
 						circle_clicked = false;
 						d.clicked = false;
@@ -683,7 +788,7 @@ function highlight(a,b,circle_data){
 		function(d){ return include(a, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		a_path.transition()
 		// .style('fill','#93d1f9')
-		.style('fill','#bbc5cc')
+		.style('fill','#0cafcc')
 		// .style('fill', '#c3e6f4')
 		.attr('filter','url(#filter1)');
 	
@@ -691,7 +796,7 @@ function highlight(a,b,circle_data){
 		function(d){ return include(b, d.properties.COWCODE)}).classed('mapHighlighted', true)
 		b_path.transition()
 		// .style('fill', '#ffb760')
-		.style('fill','#dfd4d2')
+		.style('fill','#f7c062')
 		// .style('fill', '#f9eac2')
 		.attr('filter','url(#filter1)');
 
@@ -809,9 +914,9 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_highlighted, function(d){
 			return d.DispNum})
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#ff6666');
+		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#ff7b4c');
 
-		newBind_rect = timeRectsG.selectAll('rect').data(data_highlighted, function(d){ return d.DispNum})
+		newBind_rect = timeRectsG.selectAll('rect').data(data_highlighted, function(d){ return d.DispNum}).attr('class', 't_rects')
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y', function(d,i){
 			return i * 40 + 57.5})
@@ -847,9 +952,9 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
 
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){ return i*40 + 70}).style('fill', function(d){return d.allied == false? 'red' : '#ff9d0c'} );
+		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){ return i*40 + 70}).style('fill', function(d){return d.allied == false? '#ff6060' : '#5b41f4'} );
 
-		newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum});
+		newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum}).attr('class', 't_rects');
 
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y',function(d,i){
@@ -886,7 +991,16 @@ function sortByDateAscending(a,b){
 }
 
 function brushed() {
-   
+  
+	if(circle_clicked){
+
+		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
+		g_map.select('.circleClicked').transition().attr('r', dflt_radius);
+		g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+		circle_clicked = false;
+
+	}
+
    range = newScale == undefined ?  d3.brushSelection(this).map(timeScale.invert)
      		: d3.brushSelection(this).map(newScale.invert);
 
@@ -918,7 +1032,7 @@ function brushed() {
 
   else if (map_clicked == 1){
 
-  	g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1}).attr('class', 'map mapClicked');
+  	g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1.COWCODE}).attr('class', 'map mapClicked');
 
   
 
@@ -946,7 +1060,7 @@ function brushed() {
  //  	storedSelection2.attr('class', 'mapClicked');
 	// console.log('stored1',storedSelection2);
 
-	g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1 || d.properties.COWCODE == storedSelection2}).attr('class', 'map mapClicked');
+	g_map.selectAll('path.map').filter(function(d){return d.properties.COWCODE == storedSelection1.COWCODE || d.properties.COWCODE == storedSelection2}).attr('class', 'map mapClicked');
 	
 
 
@@ -1031,22 +1145,22 @@ function translateAlong(path) {
   };
 }
 
-function tweenDash() {
-  var l = this.getTotalLength(),
-      i = d3.interpolateString("0," + l, l + "," + l);
-  return function(t) { return i(t); };
-}
+// function tweenDash() {
+//   var l = this.getTotalLength(),
+//       i = d3.interpolateString("0," + l, l + "," + l);
+//   return function(t) { return i(t); };
+// }
 
-function tweenDash2() {
-	var d = this.attr('d')
-}
+// function tweenDash2() {
+// 	var d = this.attr('d')
+// }
 
-function transitionA(path) {
-  path.transition()
-      .duration(7500)
-      .attrTween("stroke-dasharray", tweenDash)
-      .each("end", function() { d3.select(this).call(transitionA); });
-}
+// function transitionA(path) {
+//   path.transition()
+//       .duration(7500)
+//       .attrTween("stroke-dasharray", tweenDash)
+//       .each("end", function() { d3.select(this).call(transitionA); });
+// }
 
 function initialize(){
 
@@ -1068,13 +1182,14 @@ function initialize(){
 		.duration(1000)
 		.attr('r', 12);
 
-	allRects = timeRectsG.selectAll('rect').data(data.sort(sortByDateAscending), function(d){return d.DispNum});
+	allRects = timeRectsG.selectAll('rect').data(data.sort(sortByDateAscending), function(d){return d.DispNum}).attr('class', 't_rects');
 
 	allRects.transition().duration(1000).attr('y',function(d,i){return i*40+60});
 
 	allRects.enter().append('rect').attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
 	.attr('width', 0)
 	.attr('y', function(d,i){return i*40 + 60})
+	.attr('class', 't_rects')
 	.transition()
 	.duration(700)
 	.attr('width',
@@ -1084,6 +1199,16 @@ function initialize(){
 
 	brushableG.select('.selection').style('height', data.length*40.2+7 );
 	brushableG.select('.handle').style('height', data.length*40.2+7 );
+}
+
+function drawLegends(){
+
+	var myLegends = ['default', 'highlighted', 'intersected', 'clicked', 'filtered']
+	legends.selectAll('circle').data(myLegends)
+
+	legends.append('circle').attr('r', 7).attr('cx', 50).attr('cy', 30).style('fill', '#014e66').style('fill-opacity', 0.35);
+	legends.append('text').text('Interstate Dispute').attr('x',65).attr('y',34);
+ 	
 }
 </script>
 
