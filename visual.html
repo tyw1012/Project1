@@ -56,7 +56,9 @@
 .intersected{
 	fill: #6542f4;stroke: #fff; stroke-width : 0.3; 
 }
-
+.war{
+	fill:#8faeb7; stroke: #c60101; stroke-width: 1; 
+}
 .axis .halo {
   stroke: gray;
   stroke-width: 4px;
@@ -75,6 +77,9 @@
 }
 .transparent2{
 	opacity : 0.5;
+}
+.opaque{
+	opacity:1;
 }
 .circleWrapper{
 	float:left;
@@ -103,7 +108,29 @@
 	height: 50px;
 	width: 700px; 
 }
+.titleDIV{
 
+	position: fixed;
+	top: 27px;
+	left: 30px;
+
+}
+.mainTitle{
+	font-weight: lighter;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 27px;
+	opacity: 0.65;
+	/*font-style: oblique;*/
+	/*font-style: italic;*/
+
+}
+.subTitle{
+	font-weight: lighter;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 15px;
+	opacity: 0.65;
+	line-height: 25px;
+}
 .track-overlay {
   pointer-events: stroke;
   stroke-width: 50px;
@@ -111,7 +138,7 @@
   cursor: crosshair;
 }
 .timeText{
-	font-weight: bold;
+	font-weight: italic;
 	/*color: #24393d;*/
 }
 circle.legend_high{
@@ -161,7 +188,8 @@ var map_clicked = 0;
 
 var dflt_radius = 2.5,
 	high_radius = 3.5,
-	int_radius = 4;
+	int_radius = 4,
+	war_radius = 2.5;
 
 var parseTime = d3.timeParse("%Y-%m")
 
@@ -251,6 +279,9 @@ brushableG.select('.selection').attr('fill-opacity', 0.18)
 brushableG.select('.overlay').attr('width', bm_width-50).attr('height', 70);
 // brushableG.call(brushed);
 
+var title = d3.select('#main').append('div').attr('class', 'titleDIV');
+title.append('h1').attr('class', 'mainTitle').text('World Interstate Disputes and Wars ')
+title.append('span').attr('class', 'subTitle').attr('y', 60).text('Since after the World War II until the fall of the Soviet Union (1946 - 1991)');
 
 var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(0,30)')
 
@@ -289,10 +320,10 @@ var data;
 
 
 queue()
-	.defer(d3.json, "/public/worldmap.geojson")//world map
-	.defer(d3.csv, "/public/MIDB_4.01.csv")//base data
-	.defer(d3.csv, "/public/MIDA_4.01.csv")//additional data
-	.defer(d3.csv, "/public/MIDLOC_1.1.csv")//additional data2
+	.defer(d3.json, "./public/worldmap.geojson")//world map
+	.defer(d3.csv, "./public/MIDB_4.01.csv")//base data
+	.defer(d3.csv, "./public/MIDA_4.01.csv")//additional data
+	.defer(d3.csv, "./public/MIDLOC_1.1+war.csv")//additional data2
 	.await(function(error,mapData, csv_1, csv_2, csv_3){
 
 data = d3.nest().key(function(d){ return d.DispNum3;})
@@ -325,6 +356,8 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
 		data[i].lon = data_3[i].longitude;
+		data[i].war = data_3[i].war;
+		data[i].war_name = data_3[i].war_name;
 		data[i].Start = data[i].StYear + '-' + data[i].StMon
 		data[i].End = data[i].EndYear + '-' + data[i].EndMon
 		// data[i].clicked = false
@@ -358,7 +391,7 @@ var circles = g_map.selectAll('circle')
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
-			 .classed('dispute circleNotClicked', true)
+			 .attr('class', function(d){return d.war==0? 'dispute circleNotClicked' : 'circleNotClicked war opaque'})
 			 .on('mouseover', mouseoverCircle)
 			 .on('mouseout', mouseoutCircle)
 			 .on('click', selectCircle)
@@ -368,7 +401,7 @@ var circles = g_map.selectAll('circle')
 			 .attr('r', 3.5)
 			 .transition()
 			 .duration(500)
-			 .attr('r', dflt_radius);
+			 .attr('r', function(d){return d.war==0? dflt_radius : war_radius });
 			 // .attr('class', 'circleNotClicked');
 
 
@@ -669,7 +702,7 @@ var allCircles, allRects;
 						
 					 	storedSelection1 = d3.select(this).data()[0].properties
 					 	// console.log('storedSelection', storedSelection1)
-						g_map.selectAll('circle.dispute').attr('class',null).style('opacity',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+						g_map.selectAll('.dispute,.war').attr('class',null).style('opacity',null).attr('class','dispute circleNotClicked transparent').attr('r', dflt_radius);
 						d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 					
 						
