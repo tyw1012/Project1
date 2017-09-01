@@ -20,7 +20,7 @@
 	stroke: #a9cbce; stroke-width : 0.65;  
 }	
 .circleClicked{
-	fill: #dd0202; stroke: #fff; stroke-width : 0.3; 
+	fill: #dd0202 !important ; stroke: #dd0202 !important; stroke-width : 0.3; 
 }
 
 .circleNotClicked{
@@ -40,23 +40,58 @@
 .circleHighlighted{
 	/*fill: #ff6666;*/
 	/*fill:#0087a9;*/
-	fill:#ff7b4c;
+	fill:#ff7b4c ;
 	/*fill: #bc4b4b;*/
 	 stroke: #fff ; stroke-width : 0.3; 
 }
 
 
+
 .circleDrawn{
-	fill: #014e66; 
+	fill: #014e66 ; 
+}
+.circleDrawn_war{
+	fill: #fff !important;
+	stroke-width: 4 !important;
 }
 
 .circleFiltered{
-	fill: #f4523d; stroke: #fff; stroke-width : 0.3; opacity: 1; 
+	/*fill: #f4523d; stroke: #fff; stroke-width : 0.3;*/
+	 opacity: 1; 
 }
 .intersected{
-	fill: #6542f4;stroke: #fff; stroke-width : 0.3; 
+	stroke: #fff; stroke-width : 0.3; 
 }
+.allied{
+	fill: #5b41f4 ;
+	stroke: #5b41f4 !important;
 
+}
+.hostile{
+	fill: #ff6060 ;
+	stroke: #ff6060 !important;
+}
+.war{
+	fill:#fff !important; 
+	stroke: #014e66 ;
+	stroke-width:1.5; 
+}
+.circleHighlighted_war{
+	fill:#fff; 
+	stroke:#ff7b4c ;
+	stroke-width: 1.5;
+}
+.circleClicked_war{
+
+	fill:#fff; 
+	stroke:#dd0202!important;	
+	stroke-width: 1.5;
+
+}
+.dispute{
+	stroke: #fff!important;
+	stroke-width:0.3;
+}
 .axis .halo {
   stroke: gray;
   stroke-width: 4px;
@@ -71,10 +106,17 @@
 }
 
 .transparent{
-	opacity : 0.13;
+	opacity : 0.08;
 }
 .transparent2{
-	opacity : 0.5;
+	opacity : 0.25;
+}
+.opaque{
+	opacity:1;
+}
+.circleFiltered{
+	/*fill: #f4523d; stroke: #fff; stroke-width : 0.3;*/
+	 opacity: 1; 
 }
 .circleWrapper{
 	float:left;
@@ -97,13 +139,36 @@
 }
 .legendDiv{
 
+	font-size: 13.5px;
 	position: fixed;
 	left: 325px;
 	bottom: 35px;
 	height: 50px;
 	width: 700px; 
 }
+.titleDIV{
 
+	position: fixed;
+	top: 27px;
+	left: 30px;
+
+}
+.mainTitle{
+	font-weight: lighter;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 27px;
+	opacity: 0.65;
+	/*font-style: oblique;*/
+	/*font-style: italic;*/
+
+}
+.subTitle{
+	font-weight: lighter;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 15px;
+	opacity: 0.65;
+	line-height: 25px;
+}
 .track-overlay {
   pointer-events: stroke;
   stroke-width: 50px;
@@ -111,18 +176,31 @@
   cursor: crosshair;
 }
 .timeText{
-	font-weight: bold;
+	font-weight: italic;
 	/*color: #24393d;*/
+}
+
+
+circle.legend_dispute{
+	fill:#acc7cf;
+}
+circle.legend_war{
+	stroke-width : 3;
+
 }
 circle.legend_high{
 	fill:#ff7b4c;
 }
+circle.legend_high_war{
+	stroke:#ff7b4c;
+}
 circle.legend_allied{
-
+	fill:#5b41f4;
 }
 circle.legend_hostile{
 	fill: #ff6060;
 }
+
 </style>
 
 
@@ -138,9 +216,9 @@ circle.legend_hostile{
 </div>
 
 <div id = 'board' style = "width:27.3%; height:100%; float:left; background: #fff; overflow:auto; border-left: 1.5px solid #a9cbce;">
-	<div id = 'board_header' style = "width:100%; height:60px"></div>
+	<div id = 'board_header' style = "width:100%; height:40px"></div>
 	<div id = 'board_text' style = "width:100%; height: 30px"></div>
-	<div id = 'board_time' style = "width:100%; height: calc(80% - 90px); overflow:auto"></div>
+	<div id = 'board_time' style = "width:100%; height: calc(80% - 70px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
 	<div id = 'board_info' style = "width:100%; height: 20%;"></div>	
 
 </div>
@@ -161,7 +239,8 @@ var map_clicked = 0;
 
 var dflt_radius = 2.5,
 	high_radius = 3.5,
-	int_radius = 4;
+	int_radius = 4,
+	war_radius = 2.5;
 
 var parseTime = d3.timeParse("%Y-%m")
 
@@ -251,6 +330,9 @@ brushableG.select('.selection').attr('fill-opacity', 0.18)
 brushableG.select('.overlay').attr('width', bm_width-50).attr('height', 70);
 // brushableG.call(brushed);
 
+var title = d3.select('#main').append('div').attr('class', 'titleDIV');
+title.append('h1').attr('class', 'mainTitle').text('World Militarized Interstate Disputes and Wars ')
+title.append('span').attr('class', 'subTitle').attr('y', 60).text('Since after the World War II until the fall of the Soviet Union (1946 - 1991)');
 
 var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(0,30)')
 
@@ -292,7 +374,7 @@ queue()
 	.defer(d3.json, "./worldmap.geojson")//world map
 	.defer(d3.csv, "./MIDB_4.01.csv")//base data
 	.defer(d3.csv, "./MIDA_4.01.csv")//additional data
-	.defer(d3.csv, "./MIDLOC_1.1.csv")//additional data2
+	.defer(d3.csv, "./MIDLOC_1.1+war.csv")//additional data2
 	.await(function(error,mapData, csv_1, csv_2, csv_3){
 
 data = d3.nest().key(function(d){ return d.DispNum3;})
@@ -325,6 +407,8 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].EndMon = data_2[i].EndMon;
 		data[i].lat = data_3[i].latitude
 		data[i].lon = data_3[i].longitude;
+		data[i].war = data_3[i].war;
+		data[i].war_name = data_3[i].war_name;
 		data[i].Start = data[i].StYear + '-' + data[i].StMon
 		data[i].End = data[i].EndYear + '-' + data[i].EndMon
 		// data[i].clicked = false
@@ -358,7 +442,7 @@ var circles = g_map.selectAll('circle')
 			 .attr('cx', (d)=> projection([d.lon,d.lat])[0])
 			 .attr('cy', (d)=> projection([d.lon,d.lat])[1])
 			 .attr('r', 0)
-			 .classed('dispute circleNotClicked', true)
+			 .attr('class', function(d){return d.war==0? 'dispute circleNotClicked' : 'circleNotClicked war opaque'})
 			 .on('mouseover', mouseoverCircle)
 			 .on('mouseout', mouseoutCircle)
 			 .on('click', selectCircle)
@@ -368,14 +452,15 @@ var circles = g_map.selectAll('circle')
 			 .attr('r', 3.5)
 			 .transition()
 			 .duration(500)
-			 .attr('r', dflt_radius);
+			 .attr('r', function(d){return d.war==0? dflt_radius : war_radius });
 			 // .attr('class', 'circleNotClicked');
 
 
 boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
 boardSVG.attr('height', function(d){return data.length*40.2+70});	
 
-boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending)).enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0)
+boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending))
+	.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
 	.on('mouseover', mouseoverCircle_board)
 	.on('mouseout', mouseoutCircle_board)
 	.on('click', selectCircle_board)
@@ -437,7 +522,7 @@ function mouseoverCircle(d){
 
 	else if(map_clicked == 1){
 
-		if(d3.select(this).classed('circleHighlighted')){
+		if(d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')){
 			d3.select(this).attr('r', high_radius + 1);
 		}
 	}
@@ -466,7 +551,7 @@ function mouseoutCircle(d){
 
 		else if(map_clicked == 1){
 
-			if(d3.select(this).classed('circleHighlighted')){
+			if(d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')){
 				d3.select(this).attr('r', high_radius );
 			}
 		}
@@ -488,13 +573,13 @@ function mouseoverCircle_board(d){
 
    if(!circle_clicked){
 	   if (map_clicked == 0){
-	   	g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	g_map.selectAll('.dispute,.war').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
 	   	.attr('r', dflt_radius + 2);
 	   }
 
 	   else if (map_clicked == 1){
-	   	 g_map.selectAll('.circleHighlighted').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	 g_map.selectAll('.circleHighlighted,.circleHighlighted_war').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
 	   	.attr('r', high_radius + 2);
 	   }
@@ -512,12 +597,12 @@ function mouseoutCircle_board(d){
 
 	if(!circle_clicked){
 		 if (map_clicked == 0){
-	   	g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	g_map.selectAll('.dispute,.war').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
 	   	.attr('r', dflt_radius);
 	     }
 	     else if (map_clicked == 1){
-	   	 g_map.selectAll('.circleHighlighted').filter(function(d_){return d_.DispNum == d.DispNum })
+	   	 g_map.selectAll('.circleHighlighted,.circleHighlighted_war').filter(function(d_){return d_.DispNum == d.DispNum })
 	   	.transition().duration(150)
 	   	.attr('r',high_radius);
 	    }
@@ -531,6 +616,11 @@ function mouseoutCircle_board(d){
 
 function selectCircle(d){
 
+	 
+	 var scrollHeight = boardSVG_circle.selectAll('circle')
+	 					.filter(function(d_){return d_.DispNum == d.DispNum }).property('cy').animVal.value - bm_height/2
+	 
+
 	if (!circle_clicked ){
 	 g_map.selectAll('path.map').attr('class', null).classed('map mapNotClicked',true);
 	 highlight(d.countries_A, d.countries_B, d);
@@ -539,25 +629,71 @@ function selectCircle(d){
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
-	 g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-	 d3.select(this).attr('style', null).classed('circleNotClicked', false).classed('circleClicked', true).attr('r', 3);
+	 // g_map.selectAll('.dispute,.war').attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleNotClicked':'war circleNotClicked opaque' }).attr('r', dflt_radius);
+
+	 // g_map.selectAll('.circleHighlighted,.circleHighlighted_war,.intersected').classed('transparent2', true).classed('opaque',false)
+
+	 d3.select(this).classed('dispute')?
+	 	 d3.select(this).classed('circleNotClicked', false)
+	 	 .classed('circleClicked', true):
+	 	 d3.select(this).classed('circleNotClicked', false)
+	 	 .classed('circleClicked_war', true)
+
+	 // .classed('opaque', true)
+	 // .classed('transparent2', false)
+
+	 
 
 	 twinkle(d3.select(this));
 
-	 var scrollHeight = d3.select('#board_time').property('scrollHeight');
-
-	 console.log('scroll',scrollHeight);
-
+	 
 	 d3.select('#board_time').transition().duration(1500).tween('scroll', scrollTopTween(scrollHeight));
+
+	 boardSVG_circle.selectAll('circle').filter(function(d_){return d_.DispNum == d.DispNum}).classed('circleClicked',true).call(twinkle_big)
 
 	 console.log('this', this);
 	 circle_clicked = true;
 	}
 	else{
-		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
-		g_map.select('.circleClicked').transition().attr('r', dflt_radius);
-		g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-		circle_clicked = false;
+		if ( d3.select(this).classed('circleClicked')||d3.select(this).classed('circleClicked_war') ){
+			g_map.selectAll('path.map').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
+
+
+			g_map.selectAll('.circleClicked,.circleClicked_war').transition().attr('r', dflt_radius);
+			// g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+
+			
+
+			circle_clicked = false;
+			map_clicked = 0;
+			initialize();
+		}
+		else{
+
+			 d3.select('#board_time').transition().duration(1500).tween('scroll', scrollTopTween(scrollHeight));
+
+			g_map.selectAll('path.map').attr('class', null).attr('style', null).classed('map mapNotClicked',true);
+			 highlight(d.countries_A, d.countries_B, d);
+
+			// g_map.selectAll('.circleHighlighted,.circleHighlighted_war,.intersected').classed('transparent2', true).classed('opaque',false)
+
+			g_map.selectAll('.circleClicked,.circleClicked_war')
+			.classed('circleClicked',false).classed('circleClicked_war',false)
+			.transition().attr('r', function(d){return map_clicked ==0? dflt_radius: map_clicked ==1? high_radius:  int_radius})
+
+			 d3.select(this).classed('dispute')?
+		 	 d3.select(this).classed('circleNotClicked', false)
+		 	 .classed('circleClicked', true):
+		 	 d3.select(this).classed('circleNotClicked', false)
+		 	 .classed('circleClicked_war', true)
+			
+
+			 twinkle(d3.select(this));
+			 boardSVG_circle.selectAll('.circleClicked').classed('circleClicked', false).transition().attr('r',12);
+			 boardSVG_circle.selectAll('circle').filter(function(d_){return d_.DispNum == d.DispNum}).classed('circleClicked',true).call(twinkle_big)
+			 
+
+		}
 
 	}
 
@@ -574,14 +710,15 @@ function selectCircle_board(d){
 	 console.log("countriesA", d.countries_A)
 	 console.log("countriesB",d.countries_B);
 
-	 g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+	  g_map.selectAll('.dispute,.war').attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleNotClicked':'war circleNotClicked opaque' }).attr('r', dflt_radius);
 
-	 d3.select(this).attr('class',null).attr('style',null).classed('circleClicked',true);
+	 d3.select(this).attr('class',function(d){return d3.select(this).classed('circleDrawn_war')? 'circleDrawn_war circleClicked_war': 'circleDrawn circleClicked'});
+
 	 twinkle_big(d3.select(this));
 
-	 g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum }).attr('style',null).attr('class',null).classed('dispute circleClicked', true);
+	 g_map.selectAll('.dispute,.war').filter(function(d_){return d_.DispNum == d.DispNum }).attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleClicked':'war circleClicked_war' });
 
-	 twinkle(d3.select('.dispute.circleClicked'));
+	 twinkle(d3.select('.dispute.circleClicked,.war.circleClicked_war'));
 	 circle_clicked = true;
 	}
 	else{
@@ -590,23 +727,29 @@ function selectCircle_board(d){
 			g_map.selectAll('path.map').attr('class', null).attr('style',null).classed('map mapNotClicked',true);
 			highlight(d.countries_A, d.countries_B, d);
 
-			g_map.selectAll('circle.dispute').attr('style',null).attr('class', null).classed('dispute circleNotClicked', true).transition().attr('r', dflt_radius);
+			 g_map.selectAll('.dispute,.war').attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleNotClicked':'war circleNotClicked opaque' }).transition().attr('r', dflt_radius);
 
-			boardSVG_circle.selectAll('.circleClicked').classed('circleClicked',false).transition().attr('r', 12).style('fill', function(d){return map_clicked == 0? '#014e66' : map_clicked == 1? '#ff7b4c' : d.allied == true? '#5b41f4' : '#ff6060'});
 
-			d3.select(this).attr('class',null).attr('style',null).classed('circleClicked',true);
+			boardSVG_circle.selectAll('.circleClicked,.circleClicked_war').classed('circleClicked',false).classed('circleClicked_war',false).transition().attr('r', 12)
+			// .style('fill', function(d){return map_clicked == 0? '#014e66' : map_clicked == 1? '#ff7b4c' : d.allied == true? '#5b41f4' : '#ff6060'});
+
+			d3.select(this).attr('class',function(d){return d3.select(this).classed('circleDrawn_war')? 'circleDrawn_war circleClicked_war': 'circleDrawn circleClicked'});
 	 		twinkle_big(d3.select(this));
 
-	 		g_map.selectAll('circle.dispute').filter(function(d_){return d_.DispNum == d.DispNum }).attr('style',null).attr('class',null).classed('dispute circleClicked', true);
+	 		g_map.selectAll('.dispute,.war').filter(function(d_){return d_.DispNum == d.DispNum }).attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleClicked':'war circleClicked_war' });
 
-	 		twinkle(d3.select('.dispute.circleClicked'));
+	 		twinkle(d3.select('.dispute.circleClicked,.war.circleClicked_war'));
 
 		}
 		else{
 
 			g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
-			d3.selectAll('.dispute.circleClicked').classed('circleClicked',false).classed('circleNotClicked',true).transition().attr('r',dflt_radius)
+
+			// d3.selectAll('.dispute.circleClicked').classed('circleClicked',false).classed('circleNotClicked',true).transition().attr('r',dflt_radius)
+
+
 			boardSVG_circle.select('.circleClicked').classed('circleClicked',false).classed('circleDrawn',true).transition().attr('r',dflt_radius)
+
 			initialize();
 			circle_clicked = false;
 			map_clicked = 0;
@@ -624,8 +767,9 @@ function scrollTopTween(scrollTop) {
         var i = d3.interpolateNumber(document.getElementById('board_time').scrollTop, scrollTop); 
         console.log(this.scrollTop);
         return function(t) { document.getElementById('board_time').scrollTop = i(t);
-        	console.log('this2', this)
-        	console.log(this.scrollTop)}
+        	// console.log('this2', this)
+        	// console.log(this.scrollTop)
+        }
         	; 
     }; 
 } 
@@ -641,7 +785,7 @@ function twinkle_big(circle){
 
 function selectMap(d){
 
-var fltr_circles = g_map.selectAll('circle.dispute').filter(function (d_){
+var fltr_circles = g_map.selectAll('.dispute,.war').filter(function (d_){
 	return include(d_.countries_A, d.properties.COWCODE) ||
 	  	   include(d_.countries_B, d.properties.COWCODE)});
 
@@ -651,8 +795,10 @@ var allCircles, allRects;
 				
 				g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
 				classed('mapClicked', false).classed('mapHighlighted', false);
+
 				g_map.select('.circleClicked').transition().attr('r', dflt_radius)
-				g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+
+				
 				
 				d.clicked = false;
 				
@@ -663,17 +809,20 @@ var allCircles, allRects;
 
 			}
 				
-			else {
+			else { 
 
 				if (map_clicked == 0){
 						
 					 	storedSelection1 = d3.select(this).data()[0].properties
 					 	// console.log('storedSelection', storedSelection1)
-						g_map.selectAll('circle.dispute').attr('class',null).style('opacity',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+						g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').classed('transparent',true).classed('opaque', false).attr('r', dflt_radius);
 						d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 					
 						
-						fltr_circles.attr('style',null).attr('class',null).classed('dispute circleHighlighted', true).transition().attr('r',3.5);
+						fltr_circles.attr('style',null)
+						.attr('class', function(){return d3.select(this).classed('war')? 'war circleHighlighted_war' : 'dispute circleHighlighted'})
+						.classed('opaque', true).classed('transparent',false)
+						.transition().attr('r',3.5);
 						// d3.selectAll('.circleNotClicked').classed('transparent2',true);
 						console.log("fltr",fltr_circles);
 						d.clicked = true;
@@ -684,9 +833,16 @@ var allCircles, allRects;
 
 						if (document.querySelector('.circleHighlighted') !== null) {
 
-	   						legends.append('circle').attr('class','legend_high').attr('r', 7).attr('cx', 200).attr('cy', 30).style('fill', '#ff7b4c');
-							legends.append('text').attr('class','legend_high').text(' Dispute Where '+d.properties.CNTRY_NAME+' was Involved').attr('x',215).attr('y',34);
+	   						legends.select('circle.legend_dispute').classed('legend_high',true)
+	   						// .attr('r', 7).attr('cx', 200).attr('cy', 30);
+							legends.select('text.legend_dispute').classed('legend_high', true).text(' Dispute Where '+d.properties.CNTRY_NAME+' was Involved')
+							// .attr('x',215).attr('y',34);
 
+							var scrollWidth = legends.select('text.legend_dispute').property('scrollWidth')
+
+
+							legends.select('circle.legend_war').classed('legend_high_war',true).attr('r', 7).attr('cx', scrollWidth - 20 ).attr('cy', 30);
+							legends.select('text.legend_war').classed('legend_high_war', true).text(' War Where '+d.properties.CNTRY_NAME+' was Involved').attr('x',scrollWidth   ).attr('y',34);
 						}
 
 					
@@ -704,14 +860,21 @@ var allCircles, allRects;
 
 							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
-							var fltr_circles_int = fltr_circles.filter( function(){return d3.select(this).classed('circleHighlighted')}).attr('class',null).classed('dispute intersected',true)
+							var fltr_circles_int = fltr_circles
+								.filter(function()
+									{return d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')}
+									)
+								.attr('class', function(d){return d.war ==0?'dispute intersected' : 'war intersected'})
 
 							var fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
 								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
 									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									}).classed('allied', true);
 
-							fltr_circles_int_allied.style('fill', '#5b41f4');
+							// fltr_circles_int_allied.style('fill', function(d){return d.war==0? '#5b41f4' : '#fff'});
+							// fltr_circles_int_allied.style('stroke', function(d){
+							// 	return d.war==0? '#fff': '#5b41f4'
+							// })
 
 							var fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
 								return !(
@@ -720,10 +883,15 @@ var allCircles, allRects;
 									   )
 									}).classed('hostile', true);
 
-							fltr_circles_int_hostile.style('fill', '#ff6060');
+							// fltr_circles_int_hostile.style('fill', function(d){return d.war==0? '#ff6060' : '#fff'});
+							// fltr_circles_int_hostile.style('stroke', function(d){
+							// 	return d.war==0? '#fff': '#ff6060'
+							// })
 
 							fltr_circles_int.transition().attr('r',2).transition().attr('r',4);
-							d3.selectAll('.circleHighlighted').attr('class', null).classed('dispute circleNotClicked',true).attr('r',dflt_radius);	
+
+
+							d3.selectAll('.circleHighlighted,.circleHighlighted_war').attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleNotClicked transparent':'war circleNotClicked transparent' }).attr('r',dflt_radius);	
 							// fltr_circles[0].filter(function(d){return d3.select(this).classed('circleHighlighted') }).attr('class',null).attr('style',null).classed('circleNotClicked', true);
 							map_clicked = 2;
 							drawCircle();
@@ -748,9 +916,8 @@ var allCircles, allRects;
 							d.clicked = false
 							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
 
-							fltr_circles.attr('r', dflt_radius);
-							fltr_circles.attr('class', null).classed('dispute circleNotClicked', true);
-							// d3.selectAll('.circleNotClicked').classed('transparent2', false);
+						
+							
 							map_clicked = 0;
 
 							initialize();
@@ -762,10 +929,8 @@ var allCircles, allRects;
 					}
 				    else{
 
-				    	g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
-						classed('mapClicked', false).classed('mapHighlighted', false);
-						g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-
+				    	g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).classed('mapClicked', false).classed('mapHighlighted', false);
+					
 						initialize();
 
 						legends.selectAll('.legend_hostile').remove();
@@ -903,7 +1068,7 @@ function drawCircle(){
 
 	if (map_clicked == 1){
 
-		selectedCircles = d3.selectAll('.circleHighlighted')
+		selectedCircles = d3.selectAll('.circleHighlighted,.circleHighlighted_war')
 		var data_highlighted = selectedCircles.data().sort(sortByDateAscending);
 
 		boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2+45});
@@ -914,7 +1079,10 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_highlighted, function(d){
 			return d.DispNum})
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#ff7b4c');
+		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} );
+
+		boardSVG_circle.selectAll('.circleDrawn').style('fill','#ff7b4c')
+		boardSVG_circle.selectAll('.circleDrawn_war').style('stroke', '#ff7b4c');
 
 		newBind_rect = timeRectsG.selectAll('rect').data(data_highlighted, function(d){ return d.DispNum}).attr('class', 't_rects')
 		newBind_rect.exit().transition().attr('width', 0).remove();
@@ -952,7 +1120,17 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
 
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){ return i*40 + 70}).style('fill', function(d){return d.allied == false? '#ff6060' : '#5b41f4'} );
+		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){ return i*40 + 70})
+		.style('fill', function(d){
+			return d.allied == false && d.war == 0? '#ff6060' 
+			: 	   d.allied == false && d.war == 1? '#fff' 
+			:      d.allied == true  && d.war == 0? '#5b41f4'
+			:      									'#fff'} )
+		.style('stroke', function(d){
+			return d.allied == false && d.war == 0? '#fff' 
+			: 	   d.allied == false && d.war == 1? '#ff6060' 
+			:      d.allied == true  && d.war == 0? 'fff'
+			:      									'#5b41f4'} );
 
 		newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum}).attr('class', 't_rects');
 
@@ -1015,18 +1193,18 @@ function brushed() {
 
   if (map_clicked == 0){
 
-  	g_map.selectAll('circle.dispute').filter(function(d){
+  	g_map.selectAll('.dispute,.war').filter(function(d){
   		return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
   	})
-  	.style('opacity',null).classed('circleFiltered', true).classed('transparent', false).transition().attr('r', 4.5)
+  	.style('opacity',null).classed('circleFiltered', true).classed('transparent', false).transition().attr('r', dflt_radius+1)
 
 
- 	g_map.selectAll('circle.dispute').filter(function(d){
+ 	g_map.selectAll('.dispute,.war').filter(function(d){
   		return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1]) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   	})
-  	.classed('circleFiltered', false).classed('transparent', true).style('opacity', 0.05).transition().attr('r', 3.5)
+  	.classed('circleFiltered', false).classed('transparent', true).style('opacity', 0.05).transition().attr('r', dflt_radius)
 
   }
 
@@ -1038,19 +1216,19 @@ function brushed() {
 
   	console.log('stored1',storedSelection1);
 
-  	d3.selectAll('.circleHighlighted').filter(function(d)
+  	d3.selectAll('.circleHighlighted,.circleHighlighted_war').filter(function(d)
   	{	return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
   		})
 
-  .classed('circleFiltered', true).classed('transparent', false).transition().attr('r', 4.5)
+  .classed('circleFiltered', true).classed('transparent', false).transition().attr('r', high_radius+1)
 
-  d3.selectAll('.circleHighlighted').filter(function(d)
+  d3.selectAll('.circleHighlighted,.circleHighlighted_war').filter(function(d)
   	{	return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   		})
 
-  .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', 3.5);
+  .classed('circleFiltered', false).classed('transparent', true).classed('opaque',false).transition().attr('r', high_radius);
 
   }
 
@@ -1069,14 +1247,14 @@ function brushed() {
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End))
   		})
 
-  .classed('circleFiltered', true).classed('transparent', false).transition().attr('r', 4.5)
+  .classed('circleFiltered', true).classed('transparent', false).transition().attr('r', int_radius+1)
 
   d3.selectAll('.intersected').filter(function(d)
   	{	return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   		})
 
-  .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', 3.5);
+  .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', int_radius);
 
   }
 
@@ -1164,6 +1342,11 @@ function translateAlong(path) {
 
 function initialize(){
 
+
+	g_map.selectAll('.dispute,.war')
+	.attr('r', function(){return d3.select(this).classed('war')? war_radius : dflt_radius})
+	.attr('class',function(){return d3.select(this).classed('war')? 'war circleNotClicked opaque' : 'dispute circleNotClicked'})
+
 	boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
 	boardSVG.attr('height', function(d){return data.length*40.2+7});	
 
@@ -1172,9 +1355,13 @@ function initialize(){
 
 	allCircles = boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending), function(d){return d.DispNum})
 
-	allCircles.classed('circleDrawn',true).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} ).style('fill', '#014e66');
+	allCircles.attr('style',null).attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'})
+	.transition().duration(1000)
+	.attr('cy', function(d,i){return i*40 + 70} )
+	.style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  });
 
-	allCircles.enter().append('circle').classed('circleDrawn',true).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('fill', '#014e66')
+
+	allCircles.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
 		.on('mouseover', mouseoverCircle_board)
 		.on('mouseout', mouseoutCircle_board)
 		.on('click', selectCircle_board)
@@ -1203,11 +1390,13 @@ function initialize(){
 
 function drawLegends(){
 
-	var myLegends = ['default', 'highlighted', 'intersected', 'clicked', 'filtered']
-	legends.selectAll('circle').data(myLegends)
+	// var myLegends = ['default', 'highlighted', 'intersected', 'clicked', 'filtered']
+	// legends.selectAll('circle').data(myLegends)
 
-	legends.append('circle').attr('r', 7).attr('cx', 50).attr('cy', 30).style('fill', '#014e66').style('fill-opacity', 0.35);
-	legends.append('text').text('Interstate Dispute').attr('x',65).attr('y',34);
+	legends.append('circle').attr('r', 7).attr('cx', 50).attr('cy', 30).classed('legend_dispute dispute', true);
+	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',65).attr('y',34);
+	legends.append('circle').attr('r', 6).attr('cx', 150).attr('cy', 30).classed('legend_war war', true)
+	legends.append('text').classed('legend_war',true).text('War').attr('x',165).attr('y',34);
  	
 }
 </script>

@@ -179,8 +179,20 @@
 	font-weight: italic;
 	/*color: #24393d;*/
 }
+
+
+circle.legend_dispute{
+	fill:#acc7cf;
+}
+circle.legend_war{
+	stroke-width : 3;
+
+}
 circle.legend_high{
 	fill:#ff7b4c;
+}
+circle.legend_high_war{
+	stroke:#ff7b4c;
 }
 circle.legend_allied{
 	fill:#5b41f4;
@@ -188,6 +200,7 @@ circle.legend_allied{
 circle.legend_hostile{
 	fill: #ff6060;
 }
+
 </style>
 
 
@@ -820,9 +833,16 @@ var allCircles, allRects;
 
 						if (document.querySelector('.circleHighlighted') !== null) {
 
-	   						legends.append('circle').attr('class','legend_high').attr('r', 7).attr('cx', 200).attr('cy', 30).style('fill', '#ff7b4c');
-							legends.append('text').attr('class','legend_high').text(' Dispute Where '+d.properties.CNTRY_NAME+' was Involved').attr('x',215).attr('y',34);
+	   						legends.select('circle.legend_dispute').classed('legend_high',true)
+	   						// .attr('r', 7).attr('cx', 200).attr('cy', 30);
+							legends.select('text.legend_dispute').classed('legend_high', true).text(' Dispute Where '+d.properties.CNTRY_NAME+' was Involved')
+							// .attr('x',215).attr('y',34);
 
+							var scrollWidth = legends.select('text.legend_dispute').property('scrollWidth')
+
+
+							legends.select('circle.legend_war').classed('legend_high_war',true).attr('r', 7).attr('cx', scrollWidth - 20 ).attr('cy', 30);
+							legends.select('text.legend_war').classed('legend_high_war', true).text(' War Where '+d.properties.CNTRY_NAME+' was Involved').attr('x',scrollWidth   ).attr('y',34);
 						}
 
 					
@@ -1370,11 +1390,13 @@ function initialize(){
 
 function drawLegends(){
 
-	var myLegends = ['default', 'highlighted', 'intersected', 'clicked', 'filtered']
-	legends.selectAll('circle').data(myLegends)
+	// var myLegends = ['default', 'highlighted', 'intersected', 'clicked', 'filtered']
+	// legends.selectAll('circle').data(myLegends)
 
-	legends.append('circle').attr('r', 7).attr('cx', 50).attr('cy', 30).style('fill', '#014e66').style('fill-opacity', 0.35);
-	legends.append('text').text('Interstate Dispute').attr('x',65).attr('y',34);
+	legends.append('circle').attr('r', 7).attr('cx', 50).attr('cy', 30).classed('legend_dispute dispute', true);
+	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',65).attr('y',34);
+	legends.append('circle').attr('r', 6).attr('cx', 150).attr('cy', 30).classed('legend_war war', true)
+	legends.append('text').classed('legend_war',true).text('War').attr('x',165).attr('y',34);
  	
 }
 </script>
