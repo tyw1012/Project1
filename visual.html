@@ -226,8 +226,8 @@ circle.legend_hostile_war{
 
 <div id = 'board' style = "width:25.3%; height:100%; float:left; background: #fff; overflow:auto; border-left: 1.5px solid #a9cbce;">
 	<div id = 'board_header' style = "width:100%; height:40px"></div>
-	<div id = 'board_text' style = "width:100%; height: 30px"></div>
-	<div id = 'board_time' style = "width:100%; height: calc(80% - 70px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
+	<div id = 'board_axis' style = "width:100%; height: 90px"></div>
+	<div id = 'board_time' style = "width:100%; height: calc(80% - 130px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
 	<div id = 'board_info' style = "width:100%; height: 20%;"></div>	
 
 </div>
@@ -302,7 +302,7 @@ var path = d3.geoPath().projection(projection);
 
 var timeScale = d3.scaleTime()
   .domain([new Date('1946-03'), new Date('1991-12-31')])
-  .range([0, bm_width - 50])
+  .range([0, bm_width-20])
   // .clamp(true);
 
 var map_timeScale = d3.scaleTime()
@@ -313,12 +313,8 @@ var map_timeScale = d3.scaleTime()
 var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -Infinity], [bm_width*0.93, Infinity]])
       .on('zoom', timeZoomed )
 
-
-var timeZoomBox = boardSVG.append('rect').classed('timezoom',true).attr('y',50).attr('width',bm_width-50).attr('height',bm_height).style('visibility','invisible').style('fill', '#e4eded').call(timeZoom);
-
-
 var timeAxis = d3.axisTop(timeScale).ticks(4)
-			   .tickFormat(timeFormat).tickSize(5).tickPadding(15)
+			   .tickFormat(timeFormat).tickSize(5).tickPadding(10)
 			   // .tickValues([timeScale.domain()[0], timeScale.domain()[1]]);
 
 var map_timeAxis = d3.axisTop(map_timeScale).ticks(4)
@@ -328,16 +324,31 @@ var startValue = timeScale(new Date('1946-03'));
 startingValue = new Date('1946-03');
 
 var brush = d3.brushX()
-	.extent([[0,15],[bm_width-50,bm_height]])
+	.extent([[0,15],[bm_width-20,bm_height]])
     .on("brush", brushed);
 
 // var sliderSVG = boardSVG.append('svg').attr('class', 'slider').attr('width','100%').attr('height', 80);
 
-var brushableG = boardSVG.append('g').classed('brushable',true).call(brush);
 
-brushableG.select('.selection').attr('fill-opacity', 0.18)
-brushableG.select('.overlay').attr('width', bm_width-50).attr('height', 70);
+var timeTextG = d3.select('#board_axis').append('h2').attr('width',
+	'100%').attr('height','100%').classed('timeText',true);
+timeTextG.style('font-size', 13).html('　　　　'+'Drag right below to set a time filter.').attr('x',20).attr('y',20);
+
+
+
+var boardAxisSVG = d3.select('#board_axis').append('svg').attr('transform','translate(60, 0)').attr('width', '100%').attr('height', 65);
+
+var boardBrushSVG = d3.select('#board_axis').append('svg').attr('transform','translate(60, -2)').attr('width', '100%').attr('height', 712).style('pointer-events', 'none');
+
+var brushableG = boardBrushSVG.append('g').classed('brushable',true).attr('transform','translate(0,-15)').call(brush);
+
+brushableG.select('.selection').attr('fill-opacity', 0.18).attr('height', 690);
+brushableG.select('.handle').attr('height',690);
+brushableG.select('.overlay').attr('width', bm_width-20).attr('height', 70);
 // brushableG.call(brushed);
+
+var zoom_info = boardAxisSVG.append('text').style('opacity', 0.4).style('font-size', 11).text('Zoomable Here').attr('x',bm_width - 95).attr('y',25);
+
 
 var title = d3.select('#main').append('div').attr('class', 'titleDIV');
 title.append('h1').attr('class', 'mainTitle').text('World Militarized Interstate Disputes and Wars ')
@@ -359,19 +370,21 @@ var handle = borderSlider.insert("circle", ".track-overlay")
 
 var legends = d3.select('#main').append('div').attr('class', 'legendDiv').append('svg').attr('width', '100%')
 
-var axisG = boardSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 33.5)').call(timeAxis);
+var axisG = boardAxisSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 63.5)').call(timeAxis);
 
-var timeTextG = d3.select('#board_text').append('svg').attr('width',
-	'100%').attr('height','100%').classed('timeText',true);
+var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',0).attr('width',bm_width-20).attr('height', 63)
+	// .style('fill', '#e4eded')
+	.style('opacity', 0)
+	.call(timeZoom);
 
-timeTextG.append('text').style('font-size', 13).text('Drag right below to set a time filter.').attr('x',20).attr('y',20);
 
 
 var newScale, map_newScale, features, initial_features,
     range, map_range,
-    storedValue = [0, bm_width - 50],
+    storedValue = [0, bm_width-20],
     storedSelection1, storedSelection2;
 
+var Drag_info = boardSVG.append('text').style('opacity', 0.4).style('font-size', 11).text('Draggable Here').attr('x',bm_width - 95).attr('y',35);
 var timeRectsG = boardSVG.append('g').classed('timeRects',true)
 
 var tooltip = d3.select('body').append('div').attr('class','tooltip').style('opacity', 0);
@@ -469,7 +482,7 @@ boardSVG_circle.attr('height', function(d){return data.length*40.2+7});
 boardSVG.attr('height', function(d){return data.length*40.2+70});	
 
 boardSVG_circle.selectAll('circle').data(data.sort(sortByDateAscending))
-	.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
+	.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 25} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
 	.on('mouseover', mouseoverCircle_board)
 	.on('mouseout', mouseoutCircle_board)
 	.on('click', selectCircle_board)
@@ -485,7 +498,7 @@ timeRectsG.selectAll('rect')
 		.attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
 		// .attr('y', )
 		.attr('width', 0)
-		.attr('y', function(d,i){return i*40 + 57.5})
+		.attr('y', function(d,i){return i*40 + 12.5})
 		.attr('class', 't_rects')
 		.transition()
 		.duration(700)
@@ -495,8 +508,8 @@ timeRectsG.selectAll('rect')
 		
 		.attr('height', 24)
 
-brushableG.select('.selection').style('height', data.length*40.2+7 );
-brushableG.select('.handle').style('height', data.length*40.2+7 );
+brushableG.select('.selection').style('height', 685);
+brushableG.select('.handle').style('height', 685);
 
 
 drawLegends();
@@ -824,7 +837,7 @@ var allCircles, allRects;
 						
 					 	storedSelection1 = d3.select(this).data()[0].properties
 					 	// console.log('storedSelection', storedSelection1)
-						g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').classed('transparent',true).classed('opaque', false).attr('r', dflt_radius);
+						g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').classed('transparent',true).classed('opaque', false).classed('circleFiltered',false).attr('r', dflt_radius);
 						d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 					
 						
@@ -1137,7 +1150,7 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_highlighted, function(d){
 			return d.DispNum})
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){return i*40 + 70} );
+		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){return i*40 + 25} );
 
 		boardSVG_circle.selectAll('.circleDrawn').style('fill','#ff7b4c')
 		boardSVG_circle.selectAll('.circleDrawn_war').style('stroke', '#ff7b4c');
@@ -1145,7 +1158,7 @@ function drawCircle(){
 		newBind_rect = timeRectsG.selectAll('rect').data(data_highlighted, function(d){ return d.DispNum}).attr('class', 't_rects')
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y', function(d,i){
-			return i * 40 + 57.5})
+			return i*40 + 12.5})
 		
 		}
 
@@ -1178,7 +1191,7 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_intersected, function(d){return d.DispNum});
 
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){ return i*40 + 70})
+		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){ return i*40 + 25})
 		.style('fill', function(d){
 			return d.allied == false && d.war == 0? '#ff6060' 
 			: 	   d.allied == false && d.war == 1? '#fff' 
@@ -1194,18 +1207,18 @@ function drawCircle(){
 
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y',function(d,i){
-			return i * 40 + 57.5})
+			return i*40 + 12.5})
 		}
 
 	// console.log(selectedCircles.data().sort(sortByDateAscending));
 
-	brushableG.select('.selection').style('height', selectedCircles.data().length*40.2+7 );
-	brushableG.select('.handle').style('height', selectedCircles.data().length*40.2+7 );
+	// brushableG.select('.selection').style('height', selectedCircles.data().length*40.2+7 );
+	// brushableG.select('.handle').style('height', selectedCircles.data().length*40.2+7 );
 
 	// brush.extent([[0,15],[bm_width-30, selectedCircles.data().length*40.2+7]]);
 	// brushableG.call(brush);
 
-	d3.select('.overlay').attr('width', bm_width-30).attr('height', 70);
+	d3.select('.overlay').attr('width', bm_width-20).attr('height', 70);
 
 
 	
@@ -1354,7 +1367,7 @@ function timeZoomed(){
   newScale = d3.event.transform.rescaleX(timeScale)
 
   // console.log(d3.event.transform.rescaleX(timeScale));
-  boardSVG.select('.x.axis').call(timeAxis.scale(newScale))
+  boardAxisSVG.select('.x.axis').call(timeAxis.scale(newScale))
 
 
   console.log('zoomed')
@@ -1415,11 +1428,11 @@ function initialize(){
 
 	allCircles.attr('style',null).attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'})
 	.transition().duration(1000)
-	.attr('cy', function(d,i){return i*40 + 70} )
+	.attr('cy', function(d,i){return i*40 + 25} )
 	.style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  });
 
 
-	allCircles.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 70} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
+	allCircles.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 25} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
 		.on('mouseover', mouseoverCircle_board)
 		.on('mouseout', mouseoutCircle_board)
 		.on('click', selectCircle_board)
@@ -1429,11 +1442,11 @@ function initialize(){
 
 	allRects = timeRectsG.selectAll('rect').data(data.sort(sortByDateAscending), function(d){return d.DispNum}).attr('class', 't_rects');
 
-	allRects.transition().duration(1000).attr('y',function(d,i){return i*40+60});
+	allRects.transition().duration(1000).attr('y',function(d,i){return i*40+12.5});
 
 	allRects.enter().append('rect').attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
 	.attr('width', 0)
-	.attr('y', function(d,i){return i*40 + 60})
+	.attr('y', function(d,i){return i*40 + 12.5})
 	.attr('class', 't_rects')
 	.transition()
 	.duration(700)
@@ -1442,8 +1455,8 @@ function initialize(){
 	
 	.attr('height', 24)
 
-	brushableG.select('.selection').style('height', data.length*40.2+7 );
-	brushableG.select('.handle').style('height', data.length*40.2+7 );
+	// brushableG.select('.selection').style('height', data.length*40.2+7 );
+	// brushableG.select('.handle').style('height', data.length*40.2+7 );
 }
 
 function drawLegends(){
