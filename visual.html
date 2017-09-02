@@ -391,6 +391,9 @@ var tooltip = d3.select('body').append('div').attr('class','tooltip').style('opa
 
 var data;
 
+var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl)
+					.range([d3.rgb('#4c0000'), d3.rgb('#ce0000')])
+
 
 queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -427,12 +430,13 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].StMon = data_2[i].StMon;
 		data[i].EndYear = data_2[i].EndYear;
 		data[i].EndMon = data_2[i].EndMon;
-		data[i].lat = data_3[i].latitude
+		data[i].lat = data_3[i].latitude;
 		data[i].lon = data_3[i].longitude;
 		data[i].war = data_3[i].war;
 		data[i].war_name = data_3[i].war_name;
 		data[i].Start = data[i].StYear + '-' + data[i].StMon
 		data[i].End = data[i].EndYear + '-' + data[i].EndMon
+		data[i].Fatality = data_2[i].Fatality
 		// data[i].clicked = false
 		// data[i].highlighted = false
 		
@@ -500,6 +504,7 @@ timeRectsG.selectAll('rect')
 		.attr('width', 0)
 		.attr('y', function(d,i){return i*40 + 12.5})
 		.attr('class', 't_rects')
+		.style('fill', function(d){return fatalityScale(d.Fatality).toString()})
 		.transition()
 		.duration(700)
 		// .attr('fill','#014e66')
@@ -637,6 +642,8 @@ function mouseoutCircle_board(d){
 }
 
 function selectCircle(d){
+
+	console.log(fatalityScale(d.Fatality));
 
 	 
 	 var scrollHeight = boardSVG_circle.selectAll('circle')

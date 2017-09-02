@@ -380,10 +380,10 @@ var data;
 
 
 queue()
-	.defer(d3.json, "./public/worldmap.geojson")//world map
-	.defer(d3.csv, "./public/MIDB_4.01.csv")//base data
-	.defer(d3.csv, "./public/MIDA_4.01.csv")//additional data
-	.defer(d3.csv, "./public/MIDLOC_1.1+war.csv")//additional data2
+	.defer(d3.json, "./worldmap.geojson")//world map
+	.defer(d3.csv, "./MIDB_4.01.csv")//base data
+	.defer(d3.csv, "./MIDA_4.01.csv")//additional data
+	.defer(d3.csv, "./MIDLOC_1.1+war.csv")//additional data2
 	.await(function(error,mapData, csv_1, csv_2, csv_3){
 
 data = d3.nest().key(function(d){ return d.DispNum3;})
