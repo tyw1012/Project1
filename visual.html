@@ -7,8 +7,8 @@
 
 }
 .mapClicked{
-	/*fill: #b5e3e5;*/
-	fill:#d6f2f7;
+	fill: #def4f1;
+	/*fill:#d6f2f7;*/
 	/*fill: #c7ebed;*/
 	stroke: #a9cbce; stroke-width : 0.5;
 }
@@ -41,6 +41,7 @@
 	/*fill: #ff6666;*/
 	/*fill:#0087a9;*/
 	fill:#ff7b4c ;
+	/*fill:#000;*/
 	/*fill: #bc4b4b;*/
 	 stroke: #fff ; stroke-width : 0.3; 
 }
@@ -106,7 +107,7 @@
 }
 
 .transparent{
-	opacity : 0.08;
+	opacity : 0.03;
 }
 .transparent2{
 	opacity : 0.25;
@@ -273,7 +274,7 @@ var filter = svg.append('defs').append('filter').attr('id','filter1');
 filter.append('feGaussianBlur').attr('result','blurOut').attr('in','SourceAlpha').attr('stdDeviation','0.5');
 filter.append('feOffset').attr('dx','0.5').attr('dy','0.5').attr('result','offsetblur');
 // filter.append('feBlend').attr('in','SourceGraphic').attr('in2','blurOut').attr('mode','normal');
-filter.append('feComponentTransfer').append('feFuncA').attr('type','linear').attr('slope', '0.2');
+filter.append('feComponentTransfer').append('feFuncA').attr('type','linear').attr('slope', '0.3');
 var feMerge = filter.append('feMerge')
 feMerge.append('feMergeNode')
 feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
@@ -393,6 +394,16 @@ var data;
 
 var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl)
 					.range([d3.rgb('#4c0000'), d3.rgb('#ce0000')])
+var frequencyScale = d3.scaleLinear().domain([1,50]).rangeRound([1,6]).clamp(true);
+
+var freqColorScale = d3.scaleLinear().domain([1,6]).interpolate(d3.interpolateHcl)
+					// .range([d3.rgb('#abc0d8'), d3.rgb('#4f6884')])
+					// .range([d3.rgb('#b1d3d8'), d3.rgb('#6c898e')])
+					// .range([d3.rgb('#c5dce2'), d3.rgb('#75949b')])
+					.range([d3.rgb('#ffe5ba'), d3.rgb('#ed7c71')])
+
+
+
 
 
 queue()
@@ -853,6 +864,7 @@ var allCircles, allRects;
 					.classed('opaque', true).classed('transparent',false)
 					.transition().attr('r',3.5);
 					
+
 					var fltr_pool_hostile = [];
 					var fltr_pool_allied = [];
 
@@ -861,7 +873,7 @@ var allCircles, allRects;
 
 						for (var j = 0; j <= fltr_circles.data()[i].countries_A.length-1; j++){
 
-							if(include(fltr_circles.data()[i].countries_A, d.properties.COWCODE) && fltr_circles.data()[i].countries_A[j] !== d.properties.COWCODE){
+							if(include(fltr_circles.data()[i].countries_A, d.properties.COWCODE) && fltr_circles.data()[i].countries_A[j] !== d.properties.COWCODE.toString()){
 								
 								fltr_pool_allied.push(fltr_circles.data()[i].countries_A[j])
 						
@@ -877,7 +889,7 @@ var allCircles, allRects;
 
 						for (var j = 0; j <= fltr_circles.data()[i].countries_B.length-1; j++){
 
-							if(include(fltr_circles.data()[i].countries_B, d.properties.COWCODE) && fltr_circles.data()[i].countries_B[j] !== d.properties.COWCODE){
+							if(include(fltr_circles.data()[i].countries_B, d.properties.COWCODE) && fltr_circles.data()[i].countries_B[j] !== d.properties.COWCODE.toString()){
 								
 								fltr_pool_allied.push(fltr_circles.data()[i].countries_B[j])
 						
@@ -893,11 +905,27 @@ var allCircles, allRects;
 
 					}
 
-					console.log('fltr_hostile', fltr_pool_hostile)
-					console.log('fltr_allied',fltr_pool_allied)
+					var counts_hostile = {}
 
+					fltr_pool_hostile.forEach(function(x) { 
+											counts_hostile[x] = (counts_hostile[x] || 0)+1; });
 
+					console.log('fltr_pool_hostile', fltr_pool_hostile)
+					console.log('fltr_pool_allied', fltr_pool_allied)
+					console.log('counts_hostile', counts_hostile);
 
+					var filtered_map = g_map.selectAll('path.map').filter(function(d){return counts_hostile.hasOwnProperty(d.properties.COWCODE) }).classed('mapFiltered',true);
+
+					filtered_map.style('fill', function(d){return freqColorScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
+								.style('stroke','#125059').style('stroke-width', 0)
+								.attr('filter','url(#filter1)')
+
+					g_map.select('.mapClicked').style('stroke-width',1.5)
+					// .attr('filter','url(#filter1)')
+
+					
+
+					console.log('ftm', filtered_map)
 					d.clicked = true;
 					map_clicked = 1
 					
@@ -1408,6 +1436,7 @@ function initialize(){
 
 	// brushableG.select('.selection').style('height', data.length*40.2+7 );
 	// brushableG.select('.handle').style('height', data.length*40.2+7 );
+	g_map.selectAll('.mapFiltered').attr('style',null).attr('filter',null).classed('mapFiltered',false).classed('mapNotClicked', true);
 }
 
 function drawLegends(d){
