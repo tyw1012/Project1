@@ -27,15 +27,21 @@
 	fill: #014e66; stroke: #fff; stroke-width : 0.2; 
 	opacity: 0.3; 
 }
+
+.mapHighlighted{
+	stroke-width : 0;
+	box-shadow: -20px -20px 20px black;
+}
+.mapFiltered{
+	stroke-width: 0.4;
+}
 .mapHovered{
 	/*fill: #c7ebed;*/
 	/*fill:#dcf7f7;*/
-	fill:#e5f9f9;
+	fill:#e5f9f9 !important;
+	stroke: #a9cbce !important;
+	stroke-width: 0.65;
 
-}
-.mapHighlighted{
-	stroke: #fff; stroke-width : 0;
-	box-shadow: -20px -20px 20px black;
 }
 .circleHighlighted{
 	/*fill: #ff6666;*/
@@ -228,11 +234,16 @@ circle.legend_hostile_war{
 
 </div>
 
-<div id = 'board' style = "width:25.3%; height:100%; float:left; background: #fff; overflow:auto; border-left: 1.5px solid #a9cbce;">
+<div id = 'board' style = "width:25.3%; height:100%; float:left; background: #fff; overflow:hidden; border-left: 1.5px solid #a9cbce;">
 	<div id = 'board_header' style = "width:100%; height:40px"></div>
 	<div id = 'board_axis' style = "width:100%; height: 90px"></div>
 	<div id = 'board_time' style = "width:100%; height: calc(80% - 130px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
-	<div id = 'board_info' style = "width:100%; height: 20%;"></div>	
+	<div id = 'board_info' style = "width:100%; height: 20%;">
+		<div id='info1' style="height:30px"></div>
+		<div id='info2' style="height:30px"></div>
+		<div id='info3' style="height:30px"></div>
+		<div id='info4' style="height:30px"></div>
+	</div>	
 
 </div>
 <script src="https://d3js.org/d3.v4.js"></script>
@@ -306,7 +317,7 @@ var path = d3.geoPath().projection(projection);
 
 var timeScale = d3.scaleTime()
   .domain([new Date('1946-03'), new Date('1991-12-31')])
-  .range([0, bm_width-20])
+  .range([0, bm_width-10])
   // .clamp(true);
 
 var map_timeScale = d3.scaleTime()
@@ -314,7 +325,8 @@ var map_timeScale = d3.scaleTime()
   .range([0, 250])
   .clamp(true);
 
-var timeZoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[-bm_width*0.1, -Infinity], [bm_width*0.93, Infinity]])
+var timeZoom = d3.zoom().scaleExtent([1, 10])
+.translateExtent([[0, 0], [Infinity, 0]])
       .on('zoom', timeZoomed )
 
 var timeAxis = d3.axisTop(timeScale).ticks(4)
@@ -328,7 +340,7 @@ var startValue = timeScale(new Date('1946-03'));
 startingValue = new Date('1946-03');
 
 var brush = d3.brushX()
-	.extent([[0,15],[bm_width-20,bm_height]])
+	.extent([[0,15],[bm_width-10,bm_height]])
     .on("brush", brushed);
 
 // var sliderSVG = boardSVG.append('svg').attr('class', 'slider').attr('width','100%').attr('height', 80);
@@ -336,7 +348,7 @@ var brush = d3.brushX()
 
 var timeTextG = d3.select('#board_axis').append('h2').attr('width',
 	'100%').attr('height','100%').classed('timeText',true);
-timeTextG.style('font-size', 13).html('　　　　'+'Drag right below to set a time filter.').attr('x',20).attr('y',20);
+timeTextG.style('font-size', 13).html('　　　　').attr('x',20).attr('y',20);
 
 
 
@@ -348,7 +360,7 @@ var brushableG = boardBrushSVG.append('g').classed('brushable',true).attr('trans
 
 brushableG.select('.selection').attr('fill-opacity', 0.18).attr('height', 690);
 brushableG.select('.handle').attr('height',690);
-brushableG.select('.overlay').attr('width', bm_width-20).attr('height', 70);
+brushableG.select('.overlay').attr('width', bm_width-10).attr('height', 70);
 // brushableG.call(brushed);
 
 var zoom_info = boardAxisSVG.append('text').style('opacity', 0.4).style('font-size', 11).text('Zoomable Here').attr('x',bm_width - 95).attr('y',25);
@@ -376,7 +388,7 @@ var legends = d3.select('#main').append('div').attr('class', 'legendDiv').append
 
 var axisG = boardAxisSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 63.5)').call(timeAxis);
 
-var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',0).attr('width',bm_width-20).attr('height', 63)
+var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',0).attr('width',bm_width-10).attr('height', 63)
 	// .style('fill', '#e4eded')
 	.style('opacity', 0)
 	.call(timeZoom);
@@ -385,7 +397,7 @@ var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',
 
 var newScale, map_newScale, features, initial_features,
     range, map_range,
-    storedValue = [0, bm_width-20],
+    storedValue = [0, bm_width-10],
     storedSelection1, storedSelection2;
 
 var Drag_info = boardSVG.append('text').style('opacity', 0.4).style('font-size', 11).text('Draggable Here').attr('x',bm_width - 95).attr('y',35);
@@ -400,19 +412,12 @@ var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl
 var frequencyScale = d3.scaleLinear().domain([1,50]).rangeRound([1,10]).clamp(true);
 
 var freqColorScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
-					// .range([d3.rgb('#abc0d8'), d3.rgb('#4f6884')])
-					// .range([d3.rgb('#b1d3d8'), d3.rgb('#6c898e')])
-					// .range([d3.rgb('#c5dce2'), d3.rgb('#75949b')])
-					// .range([d3.rgb('#ffe5ba'), d3.rgb('#ed7c71')])
 					.range([d3.rgb('#ffe7c4'), d3.rgb('#ff8460')])
 				
 var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
-					// .range([d3.rgb('#abc0d8'), d3.rgb('#4f6884')])
-					// .range([d3.rgb('#b1d3d8'), d3.rgb('#6c898e')])
-					// .range([d3.rgb('#c5dce2'), d3.rgb('#75949b')])
-					// .range([d3.rgb('#ffe5ba'), d3.rgb('#ed7c71')])
 					.range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
 
+var infoDIV = d3.select('#board_info');
 
 
 
@@ -862,6 +867,21 @@ var allCircles, allRects;
 			else { 
 
 				if (map_clicked == 0){
+
+
+
+	if(d3.select(this).classed('map')){
+		infoDIV.select('#info1').html('Type: Country')
+		// infoDIV.select('#info2').style('height', 30).html('Name: ' d.properties.CNTRY_NAME +' (COWCODE: '+d.properties.COWCODE+')')
+		infoDIV.select('#info3').html('No. of dispute involved:')
+		infoDIV.select('#info4').html('War involved:')
+
+	}
+
+	else if(d3.select(this).classed('dispute')||d3.select(this).classed('war')){
+
+	}
+					
 						
 				 	storedSelection1 = d3.select(this).data()[0].properties
 				 	
@@ -928,16 +948,8 @@ var allCircles, allRects;
 
 					filtered_map.style('fill', function(d){return freqColorScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
 								.style('stroke', function(d){return freqStrokeScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
-								.style('stroke-width', 0.4)
 								.attr('vector-effect', 'non-scaling-stroke')
-								// .style('stroke', '#fff')
-								// .style('stroke-width', 1)
-
-								// .attr('filter','url(#filter1)')
-
-					g_map.select('.mapClicked').style('stroke-width',1.5)
-					// .attr('filter','url(#filter1)')
-
+								
 					
 
 					console.log('ftm', filtered_map)
@@ -946,7 +958,8 @@ var allCircles, allRects;
 					
 					drawCircle();
 					drawLegends(d);
-						
+					
+					describe(d);
 		
 				}
 
@@ -957,6 +970,7 @@ var allCircles, allRects;
 						if(!d3.select(this).classed('mapClicked'))
 						{
 							storedSelection2 = d3.select(this).data()[0].properties.COWCODE
+							g_map.selectAll('.mapFiltered').style('fill',null).style('stroke',null).classed('map mapNotClicked',true);
 
 							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
@@ -996,6 +1010,8 @@ var allCircles, allRects;
 
 						else{
 
+							g_map.selectAll('.mapFiltered').style('fill',null).style('stroke',null).classed('map mapNotClicked',true);
+
 							d.clicked = false
 							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
 																			
@@ -1007,6 +1023,7 @@ var allCircles, allRects;
 						}
 					}
 				    else{
+
 
 				    	g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).classed('mapClicked', false).classed('mapHighlighted', false);
 						
@@ -1227,7 +1244,7 @@ function drawCircle(){
 	// brush.extent([[0,15],[bm_width-30, selectedCircles.data().length*40.2+7]]);
 	// brushableG.call(brush);
 
-	d3.select('.overlay').attr('width', bm_width-20).attr('height', 70);
+	d3.select('.overlay').attr('width', bm_width-10).attr('height', 70);
 
 
 	
@@ -1373,7 +1390,10 @@ function dragged(h){
 
 function timeZoomed(){
 
+
+
   newScale = d3.event.transform.rescaleX(timeScale)
+  console.log('d3.event.transform', d3.event.transform.x)
 
   // console.log(d3.event.transform.rescaleX(timeScale));
   boardAxisSVG.select('.x.axis').call(timeAxis.scale(newScale))
@@ -1385,7 +1405,7 @@ function timeZoomed(){
   timeTextG.select('text').text('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
 
   // timeRectsG.attr('transform',`translate($(d3.event.transform.x), 0`);
-  console.log(d3.event.transform.x);
+  // console.log(d3.event.transform.x);
   timeRectsG.selectAll('rect').attr('x', function(d){return newScale(parseTime(d.Start))})
   .attr('width', function(d){return d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
 
@@ -1555,9 +1575,14 @@ function drawLegends(d){
 
 	}
 
-	
  	
 }
+
+function describe(d){
+
+
+}
+
 </script>
 
 	
