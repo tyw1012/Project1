@@ -10,7 +10,7 @@
 	fill: #def4f1;
 	/*fill:#d6f2f7;*/
 	/*fill: #c7ebed;*/
-	stroke: #a9cbce; stroke-width : 0.5;
+	stroke: #a9cbce; stroke-width : 1.5;
 }
 .mapNotClicked{
 	/*background:#eaf4f5;*/
@@ -107,7 +107,7 @@
 }
 
 .transparent{
-	opacity : 0.03;
+	opacity : 0;
 }
 .transparent2{
 	opacity : 0.25;
@@ -145,7 +145,7 @@
 	position: absolute;
 	left: 15px;
 	bottom: 20px;
-	height: 50px;
+	height: 100px;
 	width: 100%; 
 }
 .titleDIV{
@@ -181,6 +181,9 @@
 	font-weight: italic;
 	/*color: #24393d;*/
 }
+/*.legendRects{
+	font-weight: lighter;
+}*/
 
 
 circle.legend_dispute{
@@ -394,14 +397,21 @@ var data;
 
 var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl)
 					.range([d3.rgb('#4c0000'), d3.rgb('#ce0000')])
-var frequencyScale = d3.scaleLinear().domain([1,50]).rangeRound([1,6]).clamp(true);
+var frequencyScale = d3.scaleLinear().domain([1,50]).rangeRound([1,10]).clamp(true);
 
-var freqColorScale = d3.scaleLinear().domain([1,6]).interpolate(d3.interpolateHcl)
+var freqColorScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
 					// .range([d3.rgb('#abc0d8'), d3.rgb('#4f6884')])
 					// .range([d3.rgb('#b1d3d8'), d3.rgb('#6c898e')])
 					// .range([d3.rgb('#c5dce2'), d3.rgb('#75949b')])
-					.range([d3.rgb('#ffe5ba'), d3.rgb('#ed7c71')])
-
+					// .range([d3.rgb('#ffe5ba'), d3.rgb('#ed7c71')])
+					.range([d3.rgb('#ffe7c4'), d3.rgb('#ff8460')])
+				
+var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
+					// .range([d3.rgb('#abc0d8'), d3.rgb('#4f6884')])
+					// .range([d3.rgb('#b1d3d8'), d3.rgb('#6c898e')])
+					// .range([d3.rgb('#c5dce2'), d3.rgb('#75949b')])
+					// .range([d3.rgb('#ffe5ba'), d3.rgb('#ed7c71')])
+					.range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
 
 
 
@@ -917,8 +927,13 @@ var allCircles, allRects;
 					var filtered_map = g_map.selectAll('path.map').filter(function(d){return counts_hostile.hasOwnProperty(d.properties.COWCODE) }).classed('mapFiltered',true);
 
 					filtered_map.style('fill', function(d){return freqColorScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
-								.style('stroke','#125059').style('stroke-width', 0)
-								.attr('filter','url(#filter1)')
+								.style('stroke', function(d){return freqStrokeScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
+								.style('stroke-width', 0.4)
+								.attr('vector-effect', 'non-scaling-stroke')
+								// .style('stroke', '#fff')
+								// .style('stroke-width', 1)
+
+								// .attr('filter','url(#filter1)')
 
 					g_map.select('.mapClicked').style('stroke-width',1.5)
 					// .attr('filter','url(#filter1)')
@@ -1443,12 +1458,12 @@ function drawLegends(d){
 
 	if (map_clicked == 0){
 
-		legends.selectAll('.legend_dispute,.legend_war').remove();
+		legends.selectAll('.legend_dispute,.legend_war,.legendRects').remove();
 
-	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 30).classed('legend_dispute dispute', true);
-	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',35).attr('y',34);
-	legends.append('circle').attr('r', 6).attr('cx', 120).attr('cy', 30).classed('legend_war war', true)
-	legends.append('text').classed('legend_war',true).text('War').attr('x',135).attr('y',34);
+	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 80).classed('legend_dispute dispute', true);
+	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',35).attr('y',84);
+	legends.append('circle').attr('r', 6).attr('cx', 120).attr('cy', 80).classed('legend_war war', true)
+	legends.append('text').classed('legend_war',true).text('War').attr('x',135).attr('y',84);
 	}
 
 	else if(map_clicked == 1){
@@ -1470,25 +1485,40 @@ function drawLegends(d){
 			var scrollWidth = legends.select('text.legend_dispute').property('textContent').length*6.5 + 25
 
 
-			legends.select('circle.legend_war').classed('legend_high_war',true).attr('r', 7).attr('cx', scrollWidth +25 ).attr('cy', 30);
-			legends.select('text.legend_war').classed('legend_high_war', true).text(' War Where '+d.properties.CNTRY_NAME+' got Involved').attr('x',scrollWidth +40).attr('y',34);
+			legends.select('circle.legend_war').classed('legend_high_war',true).attr('r', 7).attr('cx', scrollWidth +25 ).attr('cy', 80);
+			legends.select('text.legend_war').classed('legend_high_war', true).text(' War Where '+d.properties.CNTRY_NAME+' got Involved').attr('x',scrollWidth +40).attr('y',84);
 		}
 		else{
 			legends.selectAll('.legend_war').remove();
 		}
 
+
+		legends.selectAll('rect').data([1,2,3,4,5,6,7,8,9,10]).
+		enter().append('rect').classed('legendRects', true)
+		.attr('x', function(d,i){return i*25+15})
+		.attr('y', 35)
+		.attr('width',25)
+		.attr('height', 20)
+		.style('fill', function(d){return freqColorScale(d)})
+
+		legends.append('text').text('No. of hostile disputes (war) with '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
+
+
+
+
 	}
 
 	else{
 
-		legends.selectAll('.legend_dispute,.legend_war').remove();
+		legends.selectAll('.legend_dispute,.legend_war,.legendRects').remove();
+
 							
 		var legendLength = 20;
 
 		if (document.querySelector('.dispute.intersected.hostile') !== null) {
 
-			var d_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 30).classed('legend_dispute dispute legend_hostile', true);
-			var d_hostile_text = legends.append('text').classed('legend_dispute legend_hostile', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',34);
+			var d_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_dispute dispute legend_hostile', true);
+			var d_hostile_text = legends.append('text').classed('legend_dispute legend_hostile', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',84);
 		
 			
 			legendLength = legendLength + d_hostile_text.property('textContent').length*6.5 + 25
@@ -1496,8 +1526,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.dispute.intersected.allied') !== null){
 
-			var d_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 30).classed('legend_dispute dispute legend_allied', true);
-			var d_allied_text = legends.append('text').classed('legend_dispute legend_allied', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',34);
+			var d_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_dispute dispute legend_allied', true);
+			var d_allied_text = legends.append('text').classed('legend_dispute legend_allied', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',84);
 
 			legendLength = legendLength + d_allied_text.property('textContent').length*6.5 + 25
 
@@ -1506,8 +1536,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.war.intersected.hostile') !== null) {
 
-			var w_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 30).classed('legend_war war legend_hostile_war', true);
-			var w_hostile_text = legends.append('text').classed('legend_war legend_hostile_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',34);
+			var w_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_war war legend_hostile_war', true);
+			var w_hostile_text = legends.append('text').classed('legend_war legend_hostile_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',84);
 
 			legendLength = legendLength + w_hostile_text.property('textContent').length*6.5 + 25
 
@@ -1515,8 +1545,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.war.intersected.allied') !== null) {
 
-			var w_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 30).classed('legend_war war legend_allied_war', true);
-			var w_allied_text = legends.append('text').classed('legend_war legend_allied_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',34);
+			var w_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_war war legend_allied_war', true);
+			var w_allied_text = legends.append('text').classed('legend_war legend_allied_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',84);
 
 			legendLength = legendLength + w_hostile_text.property('textContent').length*6.5 + 25
 
