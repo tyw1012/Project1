@@ -867,21 +867,6 @@ var allCircles, allRects;
 			else { 
 
 				if (map_clicked == 0){
-
-
-
-	if(d3.select(this).classed('map')){
-		infoDIV.select('#info1').html('Type: Country')
-		// infoDIV.select('#info2').style('height', 30).html('Name: ' d.properties.CNTRY_NAME +' (COWCODE: '+d.properties.COWCODE+')')
-		infoDIV.select('#info3').html('No. of dispute involved:')
-		infoDIV.select('#info4').html('War involved:')
-
-	}
-
-	else if(d3.select(this).classed('dispute')||d3.select(this).classed('war')){
-
-	}
-					
 						
 				 	storedSelection1 = d3.select(this).data()[0].properties
 				 	
@@ -1578,10 +1563,6 @@ function drawLegends(d){
  	
 }
 
-function describe(d){
-
-
-}
 
 </script>
 
