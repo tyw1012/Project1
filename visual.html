@@ -187,6 +187,15 @@
 	font-weight: italic;
 	/*color: #24393d;*/
 }
+.warList{
+	font-family: "Times New Roman", Times, serif;
+	font-size: 14px;
+}
+sup{
+	font-family: "Times New Roman", Times, serif;
+	font-size: 9px;
+	opacity:0.8;
+}
 /*.legendRects{
 	font-weight: lighter;
 }*/
@@ -244,12 +253,15 @@ circle.legend_hostile_war{
 	<div id = 'board_axis' style = "width:100%; height: 90px"></div>
 	<div id = 'board_time' style = "width:100%; height: calc(75% - 130px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
 	<div id = 'board_info' style = "width:100%; height: 25%;">
-		<h3 id='info1' style="height:40px"></h3>
-		<div id='info2' style="height:25px"></div>
-		<div id='info3' style="height:25px"></div>
-		<div id='info4' style="height:25px"></div>
-		<div id='info5' style="height:25px"></div>
-		<div id='info6' style="height:25px"></div>
+		<h3 id='info1' style="width: 40%; height:35px; float:left"></h3>
+		<h5 id='timeTeller' style="width: 60%; height:35px; float:left"></h5>
+
+		<div id='info2' style="height:20px; width: 83%; float:left;"></div>
+		<div id='info2_cont' style="height:20px; width: 17%; float:left;"></div> 
+		<div id='info3' style="height:20px; width: 83%; float:left;"></div>
+		<div id='info3_cont' style="height:20px; width: 17%; float:left;"></div>
+		<div id='info4' style="height:25px; float:left"></div>
+		
 	</div>	
 
 </div>
@@ -880,10 +892,7 @@ var allCircles, allRects;
 
 				if (map_clicked == 0){
 
-
-
 					
-						
 				 	storedSelection1 = d3.select(this).data()[0].properties
 				 	
 					g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').classed('transparent',true).classed('opaque', false).classed('circleFiltered',false).attr('r', dflt_radius);
@@ -1169,14 +1178,31 @@ function zoomed() {
 
 function drawCircle(){
 
-	var selectedCircles, selectedCircles_merged, selectedCircles_allied, selectedCircles_hostile, data_intersected;
+	var selectedCircles, selectedCircles_war, selectedCircles_merged, selectedCircles_allied, selectedCircles_hostile, data_intersected;
 	var newBind_circle;
 	var newBind_rect;
 
 	if (map_clicked == 1){
 
-		selectedCircles = d3.selectAll('.circleHighlighted,.circleHighlighted_war')
+		selectedCircles = g_map.selectAll('.circleHighlighted,.circleHighlighted_war');
+		// selectedCircles_war = g_map.selectAll('.circleHighlighted_war');
+
 		var data_highlighted = selectedCircles.data().sort(sortByDateAscending);
+		// var data_highlighted_war = selectedCircles_war.data().sort(sortByDateAscending);
+
+		setTimeout(function(){
+
+			var cyData = [];
+		 boardSVG_circle.selectAll('.circleDrawn_war')
+		 .each(function(d,i){ cyData.push(d3.select(this).attr('cy'))
+
+			})
+		console.log('cy',cyData);
+		boardSVG_circle.selectAll('text').data(cyData).enter().append('text').text(function(d,i){ var j = i+1
+			return j+')' }).attr('y', function(d){return d-8}).attr('x',5).style('opacity', 0.8);
+
+		}, 1200)
+		
 
 		boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2+45});
 		boardSVG.attr('height', function(d){return selectedCircles.data().length*40.2+45});
@@ -1485,6 +1511,7 @@ function initialize(){
 
 	infoDIV.selectAll('div').html('');
 	infoDIV.select('#info1').html('No selection.')
+	boardSVG_circle.selectAll('text').remove();
 }
 
 function drawLegends(d){
@@ -1603,17 +1630,35 @@ function drawLegends(d){
 function describe(selection){
 
 
-	console.log(fltr_circles.data().length)
+	
 	// console.log(fltr_circles_int_war.data().length);
 	var except_war = fltr_circles.data().length - fltr_circles_war.data().length
 
 
 	if( selection.classed('map') &&	map_clicked == 1){
+
+		var warList = []
+
+		for (var i = 0 ; i <= fltr_circles_war.data().length-1; i++){
+
+			warList.push(fltr_circles_war.data()[i].war_name)
+		}
+
 		infoDIV.select('#info1').html(selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
 		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
-		infoDIV.select('#info2').html('Total count of MID (including war) involved:　　'+ '<b>' + fltr_circles.data().length + '</b>'  )
-		infoDIV.select('#info3').html('Total count of War involved:　　　　　　　　　'+
-			'<b>' +fltr_circles_war.data().length+'</b>' )
+		infoDIV.select('#info2').html('<b>Total count of MID (including war) involved:</b>'  ).style('font-size', '11.5px')
+		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>').style('font-size', '11.5px')
+		infoDIV.select('#info3').style('margin-left', '0px').html('<b>Total count of War involved:</b>').style('font-size', '11.5px')
+		infoDIV.select('#info3_cont').html('<b>' +fltr_circles_war.data().length+'</b>').style('font-size', '11.5px')
+
+		infoDIV.select('#info4').style('margin-left','5px').style('margin-top','7px').append('ul').style('margin-top','5px').classed('warList',true);
+		for (var i = 0; i <= warList.length-1; i++){
+			var j= i+1
+			infoDIV.select('ul').append('li').html('<sup>'+j+')'+'</sup> ' + warList[i]);
+		}
+		
+
+		
 
 	}
 
@@ -1621,11 +1666,17 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(storedSelection1.CNTRY_NAME +' : ' +selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
 		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
-		infoDIV.select('#info2').html('Total count of MID (including war) both countries involved:　'+ '<b>' + fltr_circles_int.data().length + '</b>'  )
-		infoDIV.select('#info3').html('- Hostile relations:　　'+ '<b>' + fltr_circles_int_hostile.data().length + '</b>'  ).style('margin-left', '200px')
-		infoDIV.select('#info4').html('- Allied relations: 　　'+ '<b>' + fltr_circles_int_allied.data().length + '</b>'  ).style('margin-left', '200px')
-		infoDIV.select('#info5').html('Total count of War both countries involved:　　　　　　　　　'+
+		infoDIV.select('#info2').style('width', '88%').style('height','70px').html('<b>Total count of MID (including war) both countries involved:</b></br></br> - Hostile relations:</br> - Allied relations:').style('font-size', '11.5px')
+		infoDIV.select('#info2_cont').style('width', '12%').style('height','70px').html( '<b>' + fltr_circles_int.data().length + '</b>'+'</br></br><b>'+fltr_circles_int_hostile.data().length +'</b></br><b>'+fltr_circles_int_allied.data().length+'</b>'  ).style('font-size', '11.5px')
+		infoDIV.selectAll('span').style('line-height', 1.7);
+		infoDIV.selectAll('.info').selectAll('span').style('padding-left', '60%');
+		// infoDIV.select('#info3').html('- Hostile relations:　　'+ '<b>' + fltr_circles_int_hostile.data().length + '</b>'  )
+		// infoDIV.select('#info4').html('- Allied relations: 　　'+ '<b>' + fltr_circles_int_allied.data().length + '</b>'  )
+		
+		infoDIV.select('#info3').html('<b>Total count of War both countries involved:</b>'+
 			'<b>' +fltr_circles_int_war.data().length+'</b>' )
+		infoDIV.select('#info3_cont').html('<b>' +fltr_circles_int_war.data().length+'</b>' )
+		infoDIV.select('#info4')
 
 
 	}
