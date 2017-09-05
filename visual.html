@@ -164,7 +164,7 @@
 .mainTitle{
 	font-weight: lighter;
 	font-family: "Times New Roman", Times, serif;
-	font-size: 27px;
+	font-size: 28px;
 	opacity: 0.65;
 	/*font-style: oblique;*/
 	/*font-style: italic;*/
@@ -173,7 +173,7 @@
 .subTitle{
 	font-weight: lighter;
 	font-family: "Times New Roman", Times, serif;
-	font-size: 15px;
+	font-size: 16px;
 	opacity: 0.65;
 	line-height: 25px;
 }
@@ -219,6 +219,11 @@ circle.legend_hostile_war{
 	stroke: #ff6060;
 
 }
+#board_info{
+	font-size: 13px;
+	margin-left: 17px;
+	margin-top: 15px;
+}
 
 </style>
 
@@ -237,12 +242,14 @@ circle.legend_hostile_war{
 <div id = 'board' style = "width:25.3%; height:100%; float:left; background: #fff; overflow:hidden; border-left: 1.5px solid #a9cbce;">
 	<div id = 'board_header' style = "width:100%; height:40px"></div>
 	<div id = 'board_axis' style = "width:100%; height: 90px"></div>
-	<div id = 'board_time' style = "width:100%; height: calc(80% - 130px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
-	<div id = 'board_info' style = "width:100%; height: 20%;">
-		<div id='info1' style="height:30px"></div>
-		<div id='info2' style="height:30px"></div>
-		<div id='info3' style="height:30px"></div>
-		<div id='info4' style="height:30px"></div>
+	<div id = 'board_time' style = "width:100%; height: calc(75% - 130px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
+	<div id = 'board_info' style = "width:100%; height: 25%;">
+		<h3 id='info1' style="height:40px"></h3>
+		<div id='info2' style="height:25px"></div>
+		<div id='info3' style="height:25px"></div>
+		<div id='info4' style="height:25px"></div>
+		<div id='info5' style="height:25px"></div>
+		<div id='info6' style="height:25px"></div>
 	</div>	
 
 </div>
@@ -418,6 +425,7 @@ var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolate
 					.range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
 
 var infoDIV = d3.select('#board_info');
+var fltr_circles, fltr_circles_war, fltr_circles_int, fltr_circles_int_allied, fltr_circles_int_hostile, fltr_circles_int_war;		
 
 
 
@@ -841,7 +849,11 @@ function twinkle_big(circle){
 
 function selectMap(d){
 
-var fltr_circles = g_map.selectAll('.dispute,.war').filter(function (d_){
+ fltr_circles = g_map.selectAll('.dispute,.war').filter(function (d_){
+	return include(d_.countries_A, d.properties.COWCODE) ||
+	  	   include(d_.countries_B, d.properties.COWCODE)});
+
+ fltr_circles_war = g_map.selectAll('.war').filter(function (d_){
 	return include(d_.countries_A, d.properties.COWCODE) ||
 	  	   include(d_.countries_B, d.properties.COWCODE)});
 
@@ -867,6 +879,13 @@ var allCircles, allRects;
 			else { 
 
 				if (map_clicked == 0){
+<<<<<<< HEAD
+=======
+
+
+
+					
+>>>>>>> 7a5be0b1d7e27d81c7b3cf1b2efe5150a103b368
 						
 				 	storedSelection1 = d3.select(this).data()[0].properties
 				 	
@@ -941,10 +960,11 @@ var allCircles, allRects;
 					d.clicked = true;
 					map_clicked = 1
 					
+					describe(d3.select(this));
 					drawCircle();
 					drawLegends(d);
 					
-					describe(d);
+					
 		
 				}
 
@@ -959,24 +979,31 @@ var allCircles, allRects;
 
 							d3.select(this).attr('style', null).attr('class', null).classed('map mapClicked', true);
 							d.clicked = true;
-							var fltr_circles_int = fltr_circles
+							fltr_circles_int = fltr_circles
 								.filter(function()
 									{return d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')}
 									)
 								.attr('class', function(d){return d.war ==0?'dispute intersected' : 'war intersected'})
 
-							var fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
+							fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
 								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
 									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									}).classed('allied', true);
 
 						
-							var fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
+							fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
 								return !(
 									   (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
 									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									   )
 									}).classed('hostile', true);
+
+							fltr_circles_int_war = fltr_circles
+								.filter(function()
+									{return d3.select(this).classed('war intersected')}
+									);
+
+							console.log(fltr_circles_int_war.data())
 
 						
 
@@ -986,8 +1013,9 @@ var allCircles, allRects;
 							d3.selectAll('.circleHighlighted,.circleHighlighted_war').attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleNotClicked transparent':'war circleNotClicked transparent' }).attr('r',dflt_radius);	
 							
 							map_clicked = 2;
-							drawCircle();
 
+							describe(d3.select(this));
+							drawCircle();
 							drawLegends(d);
 							
 
@@ -1457,6 +1485,9 @@ function initialize(){
 	// brushableG.select('.selection').style('height', data.length*40.2+7 );
 	// brushableG.select('.handle').style('height', data.length*40.2+7 );
 	g_map.selectAll('.mapFiltered').attr('style',null).attr('filter',null).classed('mapFiltered',false).classed('mapNotClicked', true);
+
+	infoDIV.selectAll('div').html('');
+	infoDIV.select('#info1').html('No selection.')
 }
 
 function drawLegends(d){
@@ -1473,29 +1504,38 @@ function drawLegends(d){
 
 	else if(map_clicked == 1){
 
+		legends.selectAll('.legend_dispute,.legend_war,.legendRects').remove();
+
+		var legendLength = 20;
+
 		if (document.querySelector('.circleHighlighted') !== null) {
 
-				legends.select('circle.legend_dispute').classed('legend_high',true)
-				// .attr('r', 7).attr('cx', 200).attr('cy', 30);
-			legends.select('text.legend_dispute').classed('legend_high', true).text(' Dispute Where '+d.properties.CNTRY_NAME+' got Involved')
-			// .attr('x',215).attr('y',34);
+
+			var d_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_dispute dispute legend_high', true);
+			var d_high_text = legends.append('text').classed('legend_dispute legend_high', true).text('Dispute where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',84);
+
+			legendLength = legendLength + d_high_text.property('textContent').length*6.5 + 25
+
+			// legends.select('circle.legend_dispute').classed('legend_high',true)
+			// 	// .attr('r', 7).attr('cx', 200).attr('cy', 30);
+			// legends.select('text.legend_dispute').classed('legend_high', true).text(' Dispute Where '+d.properties.CNTRY_NAME+' got Involved')
+			// // .attr('x',215).attr('y',34);
 		}
-		else{
-			legends.selectAll('.legend_dispute').remove();
-		}
+		// else{
+		// 	legends.selectAll('.legend_dispute').remove();
+		// }
 
 		if(document.querySelector('.circleHighlighted_war') !== null){
 
 
-			var scrollWidth = legends.select('text.legend_dispute').property('textContent').length*6.5 + 25
+			var w_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_war war legend_high_war', true);
+			var w_high_text = legends.append('text').classed('legend_war legend_high_war', true).text('War where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',84);
 
-
-			legends.select('circle.legend_war').classed('legend_high_war',true).attr('r', 7).attr('cx', scrollWidth +25 ).attr('cy', 80);
-			legends.select('text.legend_war').classed('legend_high_war', true).text(' War Where '+d.properties.CNTRY_NAME+' got Involved').attr('x',scrollWidth +40).attr('y',84);
+			legendLength = legendLength + w_high_text.property('textContent').length*6.5 + 25
 		}
-		else{
-			legends.selectAll('.legend_war').remove();
-		}
+		// else{
+		// 	legends.selectAll('.legend_war').remove();
+		// }
 
 
 		legends.selectAll('rect').data([1,2,3,4,5,6,7,8,9,10]).
@@ -1506,7 +1546,7 @@ function drawLegends(d){
 		.attr('height', 20)
 		.style('fill', function(d){return freqColorScale(d)})
 
-		legends.append('text').text('No. of hostile disputes (war) with '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
+		legends.append('text').text('Total count of dispute and war against '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
 
 
 
@@ -1563,6 +1603,45 @@ function drawLegends(d){
  	
 }
 
+<<<<<<< HEAD
+=======
+function describe(selection){
+
+
+	console.log(fltr_circles.data().length)
+	// console.log(fltr_circles_int_war.data().length);
+	var except_war = fltr_circles.data().length - fltr_circles_war.data().length
+
+
+	if( selection.classed('map') &&	map_clicked == 1){
+		infoDIV.select('#info1').html(selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
+		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
+		infoDIV.select('#info2').html('Total count of MID (including war) involved:　　'+ '<b>' + fltr_circles.data().length + '</b>'  )
+		infoDIV.select('#info3').html('Total count of War involved:　　　　　　　　　'+
+			'<b>' +fltr_circles_war.data().length+'</b>' )
+
+	}
+
+	else if( selection.classed('map') && map_clicked == 2){
+
+		infoDIV.select('#info1').html(storedSelection1.CNTRY_NAME +' : ' +selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
+		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
+		infoDIV.select('#info2').html('Total count of MID (including war) both countries involved:　'+ '<b>' + fltr_circles_int.data().length + '</b>'  )
+		infoDIV.select('#info3').html('- Hostile relations:　　'+ '<b>' + fltr_circles_int_hostile.data().length + '</b>'  ).style('margin-left', '200px')
+		infoDIV.select('#info4').html('- Allied relations: 　　'+ '<b>' + fltr_circles_int_allied.data().length + '</b>'  ).style('margin-left', '200px')
+		infoDIV.select('#info5').html('Total count of War both countries involved:　　　　　　　　　'+
+			'<b>' +fltr_circles_int_war.data().length+'</b>' )
+
+
+	}
+
+	else if(d3.select(this).classed('dispute')||d3.select(this).classed('war')){
+
+	}
+
+
+}
+>>>>>>> 7a5be0b1d7e27d81c7b3cf1b2efe5150a103b368
 
 </script>
 
