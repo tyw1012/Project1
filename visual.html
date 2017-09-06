@@ -249,9 +249,10 @@ circle.legend_hostile_war{
 </div>
 
 <div id = 'board' style = "width:25.3%; height:100%; float:left; background: #fff; overflow:hidden; border-left: 1.5px solid #a9cbce;">
-	<div id = 'board_header' style = "width:100%; height:40px"></div>
-	<div id = 'board_axis' style = "width:100%; height: 90px"></div>
-	<div id = 'board_time' style = "width:100%; height: calc(73% - 130px); overflow:auto; border-bottom: 1px solid #a9cbce;"></div>
+	<div id = 'board_header' style = "width:100%; height:25px"></div>
+	<div id = 'board_axis' style = "width:100%; height: 75px"></div>
+	<div id = 'board_time' style = "width:100%; height: calc(73% - 145px); overflow:auto;"></div>
+	<div id = 'time_legend' style = "width:100%; height:45px; border-bottom: 1px solid #a9cbce;"></div>
 	<div id = 'board_info' style = "width:100%; height: 27%;">
 		<h3 id='info1' style="width: 45%; height:40px; float:left"></h3>
 		<h5 id='timeTeller' style="width: 55%; height:35px; float:left"></h5>
@@ -371,9 +372,9 @@ timeTextG.style('font-size', 13).html('　　　　').attr('x',20).attr('y',20);
 
 
 
-var boardAxisSVG = d3.select('#board_axis').append('svg').attr('transform','translate(60, 0)').attr('width', '100%').attr('height', 65);
+var boardAxisSVG = d3.select('#board_axis').append('svg').attr('transform','translate(60, -20)').attr('width', '100%').attr('height', 65);
 
-var boardBrushSVG = d3.select('#board_axis').append('svg').attr('transform','translate(60, -2)').attr('width', '100%').attr('height', 712).style('pointer-events', 'none');
+var boardBrushSVG = d3.select('#board_axis').append('svg').attr('transform','translate(60, -22)').attr('width', '100%').attr('height', 712).style('pointer-events', 'none');
 
 var brushableG = boardBrushSVG.append('g').classed('brushable',true).attr('transform','translate(0,-15)').call(brush);
 
@@ -435,6 +436,8 @@ var freqColorScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateH
 				
 var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
 					.range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
+
+					
 
 var infoDIV = d3.select('#board_info');
 var fltr_circles, fltr_circles_war, fltr_circles_int, fltr_circles_int_allied, fltr_circles_int_hostile, fltr_circles_int_war;		
@@ -560,11 +563,30 @@ timeRectsG.selectAll('rect')
 		
 		.attr('height', 24)
 
-brushableG.select('.selection').style('height', 685);
-brushableG.select('.handle').style('height', 685);
+brushableG.select('.selection').style('height', d3.select('.timeWrapper').property('clientHeight')+10);
+brushableG.select('.handle').style('height', d3.select('.timeWrapper').property('clientHeight')+10);
 
 
 drawLegends();
+
+
+d3.select('#time_legend').append('svg').attr('width','100%').selectAll('rect').data([0,1,2,3,4,5,6]).
+		enter().append('rect')
+		.attr('x', function(d,i){return i*16.5 + parseInt(bm_width)-55})
+		.attr('y', 25)
+		.attr('width',16)
+		.attr('height', 16)
+		.style('fill', function(d){return fatalityScale(d)})
+
+d3.select('#time_legend').select('svg').append('rect').attr('x', parseInt(bm_width)-71.5).attr('y',25).attr('width',16).attr('height', 16).style('fill','black');
+
+d3.select('#time_legend').select('svg').append('text').text('Fatality level').attr('x', parseInt(bm_width)-6).attr('y', 20).attr('font-weight', 'bold');
+d3.select('#time_legend').select('svg').append('text').text('H').attr('x', parseInt(bm_width)+ 63).attr('y', 37);
+d3.select('#time_legend').select('svg').append('text').text('L').attr('x', parseInt(bm_width)- 83).attr('y', 37)
+
+
+
+
 })
 
 
@@ -1417,7 +1439,7 @@ function brushed() {
   		return !(( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1]) ||
   			( range[0] <= new Date(d.End) && new Date(d.End) <= range[1] ) || ( new Date(d.Start) <= range[0] && range[1] <= new Date(d.End)) )
   	})
-  	.classed('circleFiltered', false).classed('transparent', true).style('opacity', 0.05).transition().attr('r', dflt_radius)
+  	.classed('circleFiltered', false).classed('transparent', true).transition().attr('r', dflt_radius)
 
   }
 
@@ -1445,6 +1467,13 @@ function brushed() {
 
   .classed('circleFiltered', false).classed('transparent', true).classed('opaque',false).style('pointer-events', 'none').transition().attr('r', high_radius);
 
+  	var filter_involved = g_map.selectAll('.circleFiltered').data().length;
+  	var filter_involved_war = g_map.selectAll('.circleHighlighted_war.circleFiltered').data().length;
+
+  	infoDIV.select('#timeTeller').html( timeFormat(range[0])+' to '+ timeFormat(range[1])).style('opacity', 0.8);
+
+  	infoDIV.select('#info2_cont').html( '<b>' + filter_involved + '</b>').style('font-size', '11.5px')
+  	infoDIV.select('#info3_cont').html( '<b>' + filter_involved_war + '</b>').style('font-size', '11.5px')
   }
 
   else {
