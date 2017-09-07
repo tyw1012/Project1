@@ -253,7 +253,7 @@ circle.legend_hostile_war{
 	<div id = 'board_axis' style = "width:100%; height: 75px"></div>
 	<div id = 'board_time' style = "width:100%; height: calc(73% - 145px); overflow:auto;"></div>
 	<div id = 'time_legend' style = "width:100%; height:45px; border-bottom: 1px solid #a9cbce;"></div>
-	<div id = 'board_info' style = "width:100%; height: 27%;">
+	<div id = 'board_info' style = "width:100%; height: 27%; ">
 		<h3 id='info1' style="width: 57.5%; height:40px; float:left"></h3>
 		<h5 id='timeTeller' style="width: 42.5%; height:35px; float:left; margin-top: 6px"></h5>
 
@@ -261,8 +261,8 @@ circle.legend_hostile_war{
 		<div id='info2_cont' style="height:20px; width: 17%; float:left;"></div> 
 		<div id='info3' style="height:20px; width: 83%; float:left;"></div>
 		<div id='info3_cont' style="height:20px; width: 17%; float:left;"></div>
-		<div id='info4' style="height:25px; float:left"></div>
-		
+		<div id='info4' style="height:25px; width: 100%; float:left; "></div>
+		<div id='info5' style="width: 100%; float:left;"></div>
 	</div>	
 
 </div>
@@ -1634,8 +1634,8 @@ function initialize(){
 
 	infoDIV.selectAll('div').html('');
 	infoDIV.select('#info1').html('No selection.')
-	infoDIV.select('#info2').style('height','25px');
-	infoDIV.select('#info2_cont').style('height','25px');
+	infoDIV.select('#info2').style('height','20px');
+	infoDIV.select('#info2_cont').style('height','20px');
 	boardSVG_circle.selectAll('text').remove();
 }
 
@@ -1773,8 +1773,8 @@ function describe(selection){
 		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
 		infoDIV.select('#info2').html('<b>Total count of MID (including war) involved:</b>'  ).style('font-size', '11.5px')
 		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>').style('font-size', '11.5px')
-		infoDIV.select('#info3').style('margin-left', '0px').html('<b>Total count of War involved:</b>').style('font-size', '11.5px')
-		infoDIV.select('#info3_cont').html('<b>' +fltr_circles_war.data().length+'</b>').style('font-size', '11.5px')
+		infoDIV.select('#info3').style('margin-left', '0px').style('margin-top', '0px').html('<b>Total count of War involved:</b>').style('font-size', '11.5px')
+		infoDIV.select('#info3_cont').style('margin-top', '0px').html('<b>' +fltr_circles_war.data().length+'</b>').style('font-size', '11.5px')
 
 		infoDIV.select('#info4').style('margin-left','5px').style('margin-top','7px').append('ul').style('margin-top','5px').classed('warList',true);
 		for (var i = 0; i <= warList.length-1; i++){
@@ -1823,7 +1823,70 @@ function describe(selection){
 
 	else if(selection.classed('dispute')||selection.classed('war')||selection.classed('circleDrawn')||selection.classed('circleDrawn_war')){
 
+
+
+	infoDIV.select('#info4').style('margin-left', "0px").style('margin-top',"0px");
+
 	infoDIV.select('#info1').html('Dispute #'+selection.data()[0].DispNum).style('font-size', '17px')
+	infoDIV.select('#info2').html('<b>Time:</b> ' + timeFormat(parseTime(selection.data()[0].Start)) + ' - ' + timeFormat(parseTime(selection.data()[0].End))).style('font-size', '11.5px');
+	infoDIV.select('#info3').html('<b>Fatality:</b>').style('font-size', '11.5px');
+	infoDIV.select('#info4').html('<b>Involved countries:').style('font-size', '11.5px')
+	var temp = infoDIV.select('#info5').append('svg');
+
+
+		temp.append('rect').attr('fill','#0cafcc').attr('x', 10).attr('y', 6).attr('width',12).attr('height', 12);
+		temp.append('text').attr('x', 28).attr('y',15).text('Initiator\'s side: ').style('font-size', 11.5)
+		temp.append('text').attr('x', 120).attr('y',15)
+ 			.text(
+			function(){    
+						  var a_list = [];
+						  for (var i = 0; i <= selection.data()[0].countries_A.length - 1; i++){
+
+						  	a_list.push(
+							  	 g_map.selectAll('.map')
+								 .filter(function(d_){
+								 	return include(selection.data()[0].countries_A, d_.properties.COWCODE)})
+								 .data()[i].properties.CNTRY_NAME	
+							 )
+
+						  }
+
+						  return a_list.join(', ');
+						 
+				   	}
+			
+			)
+			.classed('a_list',true).style('font-size', 11.5)
+
+		temp.append('rect').attr('fill','#f7c062').attr('x', 10).attr('y', 27).attr('width',12).attr('height', 12);
+		temp.append('text').attr('x', 28).attr('y',37).text('Target\'s side: ').style('font-size', 11.5)
+		temp.append('text').attr('x', 120).attr('y',37)
+ 			.text(
+			function(){    
+						  var b_list = [];
+						  for (var i = 0; i <= selection.data()[0].countries_B.length - 1; i++){
+
+						  	b_list.push(
+							  	 g_map.selectAll('.map')
+								 .filter(function(d_){
+								 	return include(selection.data()[0].countries_B, d_.properties.COWCODE)})
+								 .data()[i].properties.CNTRY_NAME	
+							 )
+
+						  }
+
+						  return b_list.join(', ');
+						 
+				   	}
+			
+			)
+			.classed('b_list',true).style('font-size', 11.5)
+
+		infoDIV.select('#info5').style('overflow','auto');
+
+		// console.log(d3.max([infoDIV.select('.a_list').property('textContent').length*7+150, infoDIV.select('.b_list').property('textContent').length*7+100]))
+
+		temp.attr('width', d3.max([infoDIV.select('.a_list').property('textContent').length*6+150, infoDIV.select('.b_list').property('textContent').length*6+150]) + 'px')
 
 	}
 
