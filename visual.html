@@ -254,8 +254,8 @@ circle.legend_hostile_war{
 	<div id = 'board_time' style = "width:100%; height: calc(73% - 145px); overflow:auto;"></div>
 	<div id = 'time_legend' style = "width:100%; height:45px; border-bottom: 1px solid #a9cbce;"></div>
 	<div id = 'board_info' style = "width:100%; height: 27%;">
-		<h3 id='info1' style="width: 45%; height:40px; float:left"></h3>
-		<h5 id='timeTeller' style="width: 55%; height:35px; float:left"></h5>
+		<h3 id='info1' style="width: 57.5%; height:40px; float:left"></h3>
+		<h5 id='timeTeller' style="width: 42.5%; height:35px; float:left; margin-top: 6px"></h5>
 
 		<div id='info2' style="height:20px; width: 83%; float:left;"></div>
 		<div id='info2_cont' style="height:20px; width: 17%; float:left;"></div> 
@@ -1420,10 +1420,11 @@ function brushed() {
   console.log(range)
  
  // timeFormat()	
-  timeTextG.select('text').html('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
+  // timeTextG.select('text').html('Selected time span: '+timeFormat(range[0])+' to '+ timeFormat(range[1]));
 
   console.log(d3.brushSelection(this));
   storedValue = d3.brushSelection(this);
+  infoDIV.select('#timeTeller').html( 'From '+ timeFormat(range[0])+' to '+ timeFormat(range[1])).style('opacity', 0.6);
   dragged(range[1]);
 
   if (map_clicked == 0){
@@ -1470,7 +1471,7 @@ function brushed() {
   	var filter_involved = g_map.selectAll('.circleFiltered').data().length;
   	var filter_involved_war = g_map.selectAll('.circleHighlighted_war.circleFiltered').data().length;
 
-  	infoDIV.select('#timeTeller').html( timeFormat(range[0])+' to '+ timeFormat(range[1])).style('opacity', 0.8);
+  	
 
   	infoDIV.select('#info2_cont').html( '<b>' + filter_involved + '</b>').style('font-size', '11.5px')
   	infoDIV.select('#info3_cont').html( '<b>' + filter_involved_war + '</b>').style('font-size', '11.5px')
@@ -1499,6 +1500,17 @@ function brushed() {
   		})
 
   .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', int_radius);
+
+  var filter_intersected = g_map.selectAll('.circleFiltered').data().length;
+
+  var filter_intersected_hostile = g_map.selectAll('.circleFiltered').filter(function(){return d3.select(this).classed('hostile')}).data().length;
+
+  var filter_intersected_allied = g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('allied')}).data().length;
+
+  var filter_intersected_war = g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('war')}).data().length;
+
+  infoDIV.select('#info2_cont').html( '<b>' + filter_intersected + '</br></br>' + filter_intersected_hostile + '</br>' + filter_intersected_allied)
+  infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>').style('font-size', '11.5px')
 
   }
 
