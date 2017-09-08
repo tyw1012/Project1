@@ -140,19 +140,30 @@
 }
 
 .borderDiv{
+	font-size: 11.5px;
+	font-weight: 600;
 	position: fixed;
-	left: 27px; top: 80px;
+	left: 27px; bottom: 48px;
 	height: 50px; width: 200px
 }
 .legendDiv{
 
-	font-size: 12px;
+	font-size: 11.5px;
 	font-weight: 600;
 	position: absolute;
 	left: 15px;
 	bottom: 20px;
 	height: 100px;
-	width: 100%; 
+	width: 50%; 
+	pointer-events:none;
+}
+.legendDiv2{
+	font-weight: 600;
+	font-size: 12px;
+	position: absolute;
+	left: 15px;
+	bottom: 100px;
+	width: 40%;
 }
 .titleDIV{
 
@@ -164,7 +175,7 @@
 .mainTitle{
 	font-weight: lighter;
 	font-family: "Times New Roman", Times, serif;
-	font-size: 28px;
+	font-size: 29px;
 	opacity: 0.65;
 	/*font-style: oblique;*/
 	/*font-style: italic;*/
@@ -173,9 +184,9 @@
 .subTitle{
 	font-weight: lighter;
 	font-family: "Times New Roman", Times, serif;
-	font-size: 16px;
+	font-size: 17px;
 	opacity: 0.65;
-	line-height: 25px;
+	line-height: 32px;
 }
 .track-overlay {
   pointer-events: stroke;
@@ -232,6 +243,11 @@ circle.legend_hostile_war{
 	font-size: 13px;
 	margin-left: 17px;
 	margin-top: 12px;
+}
+
+.disappeared{
+	opacity: 0;
+	pointer-events: none;
 }
 
 </style>
@@ -368,7 +384,7 @@ var brush = d3.brushX()
 
 var timeTextG = d3.select('#board_axis').append('h2').attr('width',
 	'100%').attr('height','100%').classed('timeText',true);
-timeTextG.style('font-size', 13).html('　　　　').attr('x',20).attr('y',20);
+timeTextG.style('font-size', 13).html('').attr('x',20).attr('y',20);
 
 
 
@@ -390,9 +406,9 @@ var title = d3.select('#main').append('div').attr('class', 'titleDIV');
 title.append('h1').attr('class', 'mainTitle').text('World Militarized Interstate Disputes and Wars ')
 title.append('span').attr('class', 'subTitle').attr('y', 60).text('Since after the World War II until the fall of the Soviet Union (1946 - 1991)');
 
-var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(0,30)')
+var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(3,30)')
 
-borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_timeScale.range()[1]).style('stroke-width', "5px").style('stroke', '#ddd')
+borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_timeScale.range()[1]).style('stroke-width', "4px").style('stroke', '#b8ccd8')
 	.select(function(){return this.parentNode.appendChild(this.cloneNode(true));})
 	.attr('style', null)
 	.attr('class', 'track-overlay')
@@ -400,11 +416,19 @@ borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_
         .on("start.interrupt", function() { borderSlider.interrupt(); })
         .on("start drag", function(){ dragged(map_timeScale.invert(d3.event.x)); }));
 
-var handle = borderSlider.insert("circle", ".track-overlay")
+var handle = borderSlider.insert("line", ".track-overlay")
     .attr("class", "handle")
-    .attr("r", 8);
+    .style('stroke', 'black')
+    .style('stroke-width', 1)
+    .attr('x1', 0)
+    .attr('y1', -7)
+    .attr('x2',0)
+    .attr('y2', 7);
 
-var legends = d3.select('#main').append('div').attr('class', 'legendDiv').append('svg').attr('width', '100%')
+var borderText = d3.select('.borderDiv').select('svg').append('text').attr('y', 15).attr('x',3).text('Border lines based on: 1991 Dec');
+
+var legends = d3.select('#main').append('div').attr('class', 'legendDiv').append('svg').attr('width', '200%')
+var legends_2 = d3.select('#main').append('div').attr('class', 'legendDiv2').append('svg').attr('width', '100%').attr('height', '60px');
 
 var axisG = boardAxisSVG.append('g').attr('class', 'x axis').attr('transform','translate(0, 63.5)').call(timeAxis);
 
@@ -732,8 +756,8 @@ function mouseoutCircle_board(d){
 
 function selectCircle(d){
 
-	console.log(fatalityScale(d.Fatality));
-
+	
+	g_map.selectAll('.map').classed('mapFiltered',false).attr('style',null);
 	 
 	 var scrollHeight = boardSVG_circle.selectAll('circle')
 	 					.filter(function(d_){return d_.DispNum == d.DispNum }).property('cy').animVal.value - bm_height/2
@@ -823,7 +847,8 @@ function selectCircle(d){
 
 function selectCircle_board(d){
 
-
+	g_map.selectAll('.map').classed('mapFiltered',false).attr('style',null);
+	
 	if (!circle_clicked ){
 	 g_map.selectAll('path.map').attr('class', null).classed('map mapNotClicked',true);
 	 highlight(d.countries_A, d.countries_B, d);
@@ -956,6 +981,9 @@ function selectMap(d){
  fltr_circles_war = g_map.selectAll('.war').filter(function (d_){
 	return include(d_.countries_A, d.properties.COWCODE) ||
 	  	   include(d_.countries_B, d.properties.COWCODE)});
+
+infoDIV.select('#timeTeller').html('');
+brushableG.selectAll('.selection,.handle').classed('disappeared', true);
 
 console.log('fltr', fltr_circles.data())
 var allCircles, allRects;
@@ -1121,7 +1149,8 @@ var allCircles, allRects;
 
 							d.clicked = false
 							d3.select(this).attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
-																			
+
+							
 							map_clicked = 0;
 
 							drawLegends(d);
@@ -1405,16 +1434,9 @@ function sortByDateAscending(a,b){
 
 function brushed() {
   
-	if(circle_clicked){
+  brushableG.selectAll('.selection,.handle').classed('disappeared', false);
 
-		g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
-		g_map.select('.circleClicked').transition().attr('r', dflt_radius);
-		g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
-		circle_clicked = false;
-
-	}
-
-   range = newScale == undefined ?  d3.brushSelection(this).map(timeScale.invert)
+  range = newScale == undefined ?  d3.brushSelection(this).map(timeScale.invert)
      		: d3.brushSelection(this).map(newScale.invert);
 
   console.log(range)
@@ -1427,7 +1449,44 @@ function brushed() {
   infoDIV.select('#timeTeller').html( 'From '+ timeFormat(range[0])+' to '+ timeFormat(range[1])).style('opacity', 0.6);
   dragged(range[1]);
 
-  if (map_clicked == 0){
+  if(circle_clicked){
+
+		if (map_clicked == 0){
+
+			g_map.selectAll('.map').classed('mapFiltered',false).classed('mapHighlighted',false).attr('style',null);
+
+			g_map.selectAll('path.mapHighlighted').attr('style', null).classed('map mapNotClicked', true).classed('mapHighlighted', false);
+			g_map.select('.circleClicked').transition().attr('r', dflt_radius);
+			g_map.selectAll('circle.dispute').attr('style',null).attr('class',null).classed('dispute circleNotClicked', true).attr('r', dflt_radius);
+			g_map.selectAll('circle.war').attr('style',null).attr('class',null).classed('war circleNotClicked opaque', true)
+			circle_clicked = false;
+
+		}
+
+		else if (map_clicked == 1){
+
+			g_map.selectAll('.map').classed('mapFiltered',false).classed('mapHighlighted',false).attr('style',null);
+
+			circle_clicked = false;
+
+
+		}
+
+		else {
+
+			g_map.selectAll('.map').classed('mapFiltered',false).classed('mapHighlighted',false).attr('style',null);
+
+			circle_clicked = false;
+
+
+		}
+	
+	
+  }
+
+  else { 
+
+  	if (map_clicked == 0){
 
   	g_map.selectAll('.dispute,.war').filter(function(d){
   		return ( range[0] <= new Date(d.Start) && new Date(d.Start) <= range[1] ) ||
@@ -1442,7 +1501,7 @@ function brushed() {
   	})
   	.classed('circleFiltered', false).classed('transparent', true).transition().attr('r', dflt_radius)
 
-  }
+   }
 
   else if (map_clicked == 1){
 
@@ -1512,17 +1571,22 @@ function brushed() {
   infoDIV.select('#info2_cont').html( '<b>' + filter_intersected + '</br></br>' + filter_intersected_hostile + '</br>' + filter_intersected_allied)
   infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>').style('font-size', '11.5px')
 
-  }
+   }
 
-  
+ }
   // handle.attr('cx', map_timeScale(range[1]))
 }
 
 function dragged(h){
-	console.log('dragged')
-	handle.attr('cx', map_timeScale(h))
+
+	g_map.selectAll('.map').classed('mapFiltered',false).classed('mapHighlighted',false).attr('style',null);
+
+	handle.attr('x1', map_timeScale(h))
+	handle.attr('x2', map_timeScale(h))
 
 	var now = h;
+
+	d3.select('.borderDiv').select('svg').select('text').text('Border lines based on: '+ timeFormat(now));
 
 	console.log(now);
 
@@ -1643,17 +1707,19 @@ function drawLegends(d){
 
 	if (map_clicked == 0){
 
-		legends.selectAll('.legend_dispute,.legend_war,.legendRects').remove();
+		legends.selectAll('.legend_dispute,.legend_war').remove();
+		legends_2.selectAll('.legendRects').remove();
 
 	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 80).classed('legend_dispute dispute', true);
 	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',35).attr('y',84);
-	legends.append('circle').attr('r', 6).attr('cx', 120).attr('cy', 80).classed('legend_war war', true)
-	legends.append('text').classed('legend_war',true).text('War').attr('x',135).attr('y',84);
+	legends.append('circle').attr('r', 6).attr('cx', 180).attr('cy', 80).classed('legend_war war', true)
+	legends.append('text').classed('legend_war',true).text('War').attr('x',195).attr('y',84);
 	}
 
 	else if(map_clicked == 1){
 
-		legends.selectAll('.legend_dispute,.legend_war,.legendRects').remove();
+		legends.selectAll('.legend_dispute,.legend_war').remove();
+		legends_2.selectAll('.legendRects').remove();
 
 		var legendLength = 20;
 
@@ -1687,7 +1753,7 @@ function drawLegends(d){
 		// }
 
 
-		legends.selectAll('rect').data([1,2,3,4,5,6,7,8,9,10]).
+		legends_2.selectAll('rect').data([1,2,3,4,5,6,7,8,9,10]).
 		enter().append('rect').classed('legendRects', true)
 		.attr('x', function(d,i){return i*25+15})
 		.attr('y', 35)
@@ -1695,7 +1761,7 @@ function drawLegends(d){
 		.attr('height', 20)
 		.style('fill', function(d){return freqColorScale(d)})
 
-		legends.append('text').text('Total count of dispute and war against '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
+		legends_2.append('text').text('Total count of dispute and war against '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
 
 
 
@@ -1704,7 +1770,8 @@ function drawLegends(d){
 
 	else{
 
-		legends.selectAll('.legend_dispute,.legend_war,.legendRects').remove();
+		legends.selectAll('.legend_dispute,.legend_war').remove();
+		legends_2.selectAll('.legendRects').remove();
 
 							
 		var legendLength = 20;
@@ -1823,11 +1890,18 @@ function describe(selection){
 
 	else if(selection.classed('dispute')||selection.classed('war')||selection.classed('circleDrawn')||selection.classed('circleDrawn_war')){
 
+	infoDIV.select('#info2').style('height','20px').style('margin-top','0px');
+	infoDIV.select('#info2_cont').style('height','20px').style('margin-top','0px');
+	infoDIV.select('#info5').select('svg').remove();
+	infoDIV.select('#info2_cont').html('');
+	infoDIV.select('#info3_cont').html('');
 
 
 	infoDIV.select('#info4').style('margin-left', "0px").style('margin-top',"0px");
 
 	infoDIV.select('#info1').html('Dispute #'+selection.data()[0].DispNum).style('font-size', '17px')
+
+
 	infoDIV.select('#info2').html('<b>Time:</b> ' + timeFormat(parseTime(selection.data()[0].Start)) + ' - ' + timeFormat(parseTime(selection.data()[0].End))).style('font-size', '11.5px');
 	infoDIV.select('#info3').html('<b>Fatality:</b>').style('font-size', '11.5px');
 	infoDIV.select('#info4').html('<b>Involved countries:').style('font-size', '11.5px')
