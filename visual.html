@@ -145,7 +145,7 @@
 .borderDiv{
 	/*line-height: 10px;*/
 	font-family: arial;
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: 100;
 	position: fixed;
 	left: 27px; bottom: 48px;
@@ -180,10 +180,10 @@
 
 }
 .mainTitle{
-	font-weight: lighter;
-	font-family: "Times New Roman", Times, serif;
-	font-size: 29px;
-	opacity: 0.65;
+	font-weight: bold;
+	font-family: arial;
+	font-size: 27.5px;
+	opacity: 0.9;
 	/*font-style: oblique;*/
 	/*font-style: italic;*/
 
@@ -192,7 +192,7 @@
 	font-weight: lighter;
 	font-family: "Times New Roman", Times, serif;
 	font-size: 17px;
-	opacity: 0.65;
+	opacity: 0.8;
 	line-height: 30px;
 }
 .track-overlay {
@@ -216,6 +216,14 @@ sup{
 	font-family: "Times New Roman", Times, serif;
 	font-size: 9px;
 	opacity:0.8;
+}
+#drag_info{
+
+	position:absolute;
+	opacity: 0.5;
+	right: 35px;
+	top: 110px;
+
 }
 /*.legendRects{
 	font-weight: lighter;
@@ -424,7 +432,7 @@ brushableG.select('.handle').attr('height',690);
 brushableG.select('.overlay').attr('width', bm_width-10).attr('height', 70);
 // brushableG.call(brushed);
 
-var zoom_info = boardAxisSVG.append('text').style('opacity', 0.4).style('font-size', 11).text('Zoomable Here').attr('x',bm_width - 95).attr('y',25);
+var zoom_info = boardAxisSVG.append('text').style('opacity', 0.5).style('font-size', 11).text('Zoomable Here').attr('x',bm_width - 93).attr('y',25);
 
 
 var title = d3.select('#main').append('div').attr('class', 'titleDIV');
@@ -450,7 +458,7 @@ var handle = borderSlider.insert("line", ".track-overlay")
     .attr('x2',0)
     .attr('y2', 6);
 
-var borderText = d3.select('.borderDiv').select('svg').append('text').attr('y', 17).attr('x',3).text('Border lines based on: 1991 Dec');
+var borderText = d3.select('.borderDiv').select('svg').append('text').attr('y', 18).attr('x',3).text('Border lines based on: 1991 Dec');
 
 var legends = d3.select('#main').append('div').attr('class', 'legendDiv').append('svg').attr('width', '200%')
 var legends_2 = d3.select('#main').append('div').attr('class', 'legendDiv2').append('svg').attr('width', '100%').attr('height', '60px');
@@ -469,7 +477,8 @@ var newScale, map_newScale, features, initial_features,
     storedValue = [0, bm_width-10],
     storedSelection1, storedSelection2;
 
-var Drag_info = boardSVG.append('text').style('opacity', 0.4).style('font-size', 11).text('Draggable Here').attr('x',bm_width - 95).attr('y',35);
+var Drag_info = d3.select('.timeWrapper').append('div').attr('id', 'drag_info').html('Draggable Here')
+// .attr('x',bm_width - 95).attr('y',35);
 var timeRectsG = boardSVG.append('g').classed('timeRects',true)
 
 var tooltip = d3.select('body').append('div').attr('class','tooltip').style('opacity', 0);
@@ -501,8 +510,22 @@ d3.select('#board_header').append('div')
 .style('position','absolute')
 .style('right', '15px')
 .style('margin-top', '3px')
-
 .html(' About Project');
+
+var circleTip = d3.tip()
+				.attr('class', 'd3-tip')
+	  			.offset([-10, 0])
+	  			.html(function(d) {
+	    		return d.war ==0? '<strong><span style="color:white">' +'Dispute #'+ d.DispNum + "</span>" : '<strong><span style="color:white">' + d.war_name + "</span>" });
+	    		
+var countryTip =  d3.tip()
+				.attr('class', 'd3-tip')
+	  			.offset([-10, 0])
+	  			.html(function(d) {
+	    		return  '<strong><span style="color:white">'+ d.properties.CNTRY_NAME + "</span>"  });
+
+g_map.call(circleTip);
+g_map.call(countryTip);
 
 queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -687,9 +710,12 @@ function mouseoutMap(d){
 
 function mouseoverCircle(d){
 
+	
+
 	if (map_clicked == 0){
 
 	 d3.select(this).attr('r', dflt_radius + 1 );	
+	 circleTip.show(d);
 
 	}
 
@@ -697,10 +723,12 @@ function mouseoverCircle(d){
 
 		if((d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')) && !d3.select(this).classed('circleFiltered')){
 			d3.select(this).attr('r', high_radius + 1);
+			circleTip.show(d);
 		}
 
 		if((d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')) && d3.select(this).classed('circleFiltered')){
 			d3.select(this).attr('r', high_radius + 2);
+			circleTip.show(d);
 		}
 
 
@@ -709,10 +737,12 @@ function mouseoverCircle(d){
 
 		if(d3.select(this).classed('intersected')&& !d3.select(this).classed('circleFiltered')) {
 			d3.select(this).attr('r', int_radius + 1 );
+			circleTip.show(d);
 		}
 
 		if(d3.select(this).classed('intersected')&& d3.select(this).classed('circleFiltered')) {
 			d3.select(this).attr('r', int_radius + 2 );
+			circleTip.show(d);
 		}
 	}
 
@@ -723,23 +753,27 @@ function mouseoverCircle(d){
 
 function mouseoutCircle(d){
 
+		circleTip.hide(d);
+
 	if (!d3.select(this).classed('circleClicked')){
 
 
 		if (map_clicked == 0){
 
 		 d3.select(this).attr('r', dflt_radius  );	
-
+			circleTip.hide(d);
 		}
 
 		else if(map_clicked == 1){
 
 			if((d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')) && !d3.select(this).classed('circleFiltered')){
 				d3.select(this).attr('r', high_radius );
+				circleTip.hide(d);
 			}
 
 			if((d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')) && d3.select(this).classed('circleFiltered')){
 			d3.select(this).attr('r', high_radius + 1);
+			circleTip.hide(d);
 			}
 
 		}
@@ -747,10 +781,12 @@ function mouseoutCircle(d){
 
 			if(d3.select(this).classed('intersected')&& !d3.select(this).classed('circleFiltered')){
 				d3.select(this).attr('r', int_radius  );
+				circleTip.hide(d);
 			}
 
 			if(d3.select(this).classed('intersected')&& d3.select(this).classed('circleFiltered')) {
 			d3.select(this).attr('r', int_radius + 1 );
+			circleTip.hide(d);
 		}
 
 		}
