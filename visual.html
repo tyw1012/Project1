@@ -18,7 +18,9 @@
 	/*fill: #e6f3f4; */
 	/*fill: #f7fcfc;*/
 	fill:#fff;
-	stroke: #a9cbce; stroke-width : 0.65;  
+	/*stroke: #a9cbce;*/
+	stroke: #a7c5c6;
+	 stroke-width : 0.65;  
 }	
 .circleClicked{
 	fill: #dd0202 !important ; stroke: #dd0202 !important; stroke-width : 0.3; 
@@ -141,6 +143,7 @@
 }
 
 .borderDiv{
+	/*line-height: 10px;*/
 	font-family: arial;
 	font-size: 12px;
 	font-weight: 100;
@@ -149,6 +152,7 @@
 	height: 50px; width: 200px
 }
 .legendDiv{
+
 	font-family: arial;
 	font-size: 11.5px;
 	font-weight: 600;
@@ -255,6 +259,20 @@ circle.legend_hostile_war{
 	opacity: 0;
 	pointer-events: none;
 }
+#board_header{
+	 /*background: #a9cbce;*/
+	 background: #667a82;
+	 color: #fff;
+}
+
+.d3-tip {
+  line-height: 1.7;
+  font-weight: bold;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border-radius: 4px;
+}
 
 </style>
 
@@ -270,11 +288,11 @@ circle.legend_hostile_war{
 
 </div>
 
-<div id = 'board' style = "width:25.3%; height:100%; float:left; background: #fff; overflow:hidden; border-left: 1.5px solid #a9cbce;">
-	<div id = 'board_header' style = "width:100%; height:25px"></div>
+<div id = 'board' style = "width:calc(26% - 5px); height:100%; float:left; background: #fff; overflow:hidden; border-left: 2px solid #667a82;">
+	<div id = 'board_header' style = "width:100%; height:30px"></div>
 	<div id = 'board_axis' style = "width:100%; height: 75px"></div>
 	<div id = 'board_time' style = "width:100%; height: calc(73% - 145px); overflow:auto;"></div>
-	<div id = 'time_legend' style = "width:100%; height:45px; border-bottom: 1px solid #a9cbce;"></div>
+	<div id = 'time_legend' style = "width:100%; height:45px; border-bottom: 1px solid #667a82;"></div>
 	<div id = 'board_info' style = "width:100%; height: 27%; ">
 		<h3 id='info1' style="width: 57.5%; height:40px; float:left"></h3>
 		<h5 id='timeTeller' style="width: 42.5%; height:35px; float:left; margin-top: 6px"></h5>
@@ -294,6 +312,7 @@ circle.legend_hostile_war{
 <!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
 <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+<script src="./public/d3-tip.js"></script>
 <script type="text/javascript">
 
 
@@ -459,11 +478,11 @@ var data;
 
 
 var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl)
-					.range([d3.rgb('#4c0000'), d3.rgb('#ce0000')])
+					.range([d3.rgb('#4c0000'), d3.rgb('#ed0202')])
 
 var fatalityStringScale = d3.scaleOrdinal().domain([-9,0,1,2,3,4,5,6]).range(['Unknown','None','1-25 deaths','26-100 deaths','101-250 deaths','251-500 deaths','501-999 deaths','1000 deaths or more'])
 
-var frequencyScale = d3.scaleLinear().domain([1,50]).rangeRound([1,10]).clamp(true);
+var frequencyScale = d3.scaleLinear().domain([1,51]).rangeRound([1,10]).clamp(true);
 
 var freqColorScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
 					.range([d3.rgb('#ffe7c4'), d3.rgb('#ff8460')])
@@ -476,7 +495,14 @@ var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolate
 var infoDIV = d3.select('#board_info');
 var fltr_circles, fltr_circles_war, fltr_circles_int, fltr_circles_int_allied, fltr_circles_int_hostile, fltr_circles_int_war;		
 
+d3.select('#board_header').append('div')
+.style('width','70px')
+.style('line-height', 2)
+.style('position','absolute')
+.style('right', '15px')
+.style('margin-top', '3px')
 
+.html(' About Project');
 
 queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -604,19 +630,36 @@ brushableG.select('.handle').style('height', d3.select('.timeWrapper').property(
 drawLegends();
 
 
-d3.select('#time_legend').append('svg').attr('width','100%').selectAll('rect').data([0,1,2,3,4,5,6]).
-		enter().append('rect')
+var fatalityTip = d3.tip()
+  		.attr('class', 'd3-tip')
+  		.offset([-10, 0])
+  		.html(function(d) {
+    	return '<strong><span style="color:white">' + fatalityStringScale(d) + "</span>" });
+
+// var fatalityStringScale = d3.scaleOrdinal().domain([-9,0,1,2,3,4,5,6]).range(['Unknown','None','1-25 deaths','26-100 deaths','101-250 deaths','251-500 deaths','501-999 deaths','1000 deaths or more'])
+
+
+d3.select('#time_legend').append('svg')
+.attr('width','100%').call(fatalityTip)
+.selectAll('rect')
+.data([0,1,2,3,4,5,6])
+// .data([{lev:0, text:'None'},{lev:1, text:},{lev:2, text:},{lev:3, text:},{lev:4, text:},{lev:5, text:},{lev:6, textft:}])
+.enter().append('rect')
 		.attr('x', function(d,i){return i*16.5 + parseInt(bm_width)-55})
-		.attr('y', 25)
+		.attr('y', 22)
 		.attr('width',16)
 		.attr('height', 16)
 		.style('fill', function(d){return fatalityScale(d)})
+		.on('mouseover', fatalityTip.show)
+		.on('mouseout', fatalityTip.hide)
 
-d3.select('#time_legend').select('svg').append('rect').attr('x', parseInt(bm_width)-71.5).attr('y',25).attr('width',16).attr('height', 16).style('fill','black');
+d3.select('#time_legend').select('svg').append('rect').attr('x', parseInt(bm_width)-71.5).attr('y',22).attr('width',16).attr('height', 16).style('fill','black').datum([-9])
+  .on('mouseover', fatalityTip.show)
+  .on('mouseout', fatalityTip.hide);
 
-d3.select('#time_legend').select('svg').append('text').text('Fatality level').attr('x', parseInt(bm_width)-6).attr('y', 20).attr('font-weight', 'bold');
-d3.select('#time_legend').select('svg').append('text').text('H').attr('x', parseInt(bm_width)+ 63).attr('y', 37);
-d3.select('#time_legend').select('svg').append('text').text('L').attr('x', parseInt(bm_width)- 83).attr('y', 37)
+d3.select('#time_legend').select('svg').append('text').text('Fatality level').style('font-size', 11.5).attr('x', parseInt(bm_width)-165).attr('y', 34).attr('font-weight', 'bold');
+d3.select('#time_legend').select('svg').append('text').text('H').attr('x', parseInt(bm_width)+ 63).attr('y', 34);
+d3.select('#time_legend').select('svg').append('text').text('L').attr('x', parseInt(bm_width)- 83).attr('y', 34)
 
 
 
@@ -1600,6 +1643,8 @@ function brushed() {
 
 function dragged(h){
 
+	// map_clicked = 2;
+
 	g_map.selectAll('.map').classed('mapFiltered',false).classed('mapHighlighted',false).attr('style',null);
 
 	handle.attr('x1', map_timeScale(h))
@@ -1788,16 +1833,33 @@ function drawLegends(d){
 		// 	legends.selectAll('.legend_war').remove();
 		// }
 
+		var countTip = d3.tip()
+  		.attr('class', 'd3-tip')
+  		.offset([-10, 0])
+  		.html(function(d) {
+    	return '<strong><span style="color:white">' + d.text + "</span>" });
 
-		legends_2.selectAll('rect').data([1,2,3,4,5,6,7,8,9,10]).
+    	legends_2.call(countTip)
+
+
+
+
+
+
+		legends_2.selectAll('rect').data([{lev:1, text: '1-3'},{lev:2, text: '4-8'},{lev:3, text: '11-14'},{lev:4, text: '15-20'},{lev:5, text: '21-25'},{lev:6, text: '26-31'},{lev:7, text: '32-37'},{lev:8, text: '36-42'},{lev:9, text: '43-48'},{lev:10, text: '49 or more'}]).
 		enter().append('rect').classed('legendRects', true)
 		.attr('x', function(d,i){return i*25+15})
 		.attr('y', 35)
 		.attr('width',25)
 		.attr('height', 20)
-		.style('fill', function(d){return freqColorScale(d)})
+		.style('fill', function(d){return freqColorScale(d.lev)})
+		.on('mouseover',countTip.show)
+		.on('mouseout', countTip.hide)
+		
 
 		legends_2.append('text').text('Total count of dispute and war against '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
+
+
 
 
 
@@ -1909,8 +1971,8 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(storedSelection1.CNTRY_NAME +' : ' +selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
 		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
-		infoDIV.select('#info2').style('width', '88%').style('height','70px').html('<b>Total count of MID (including war) both countries involved:</b></br></br> - Hostile relations:</br> - Allied relations:').style('font-size', '11.5px')
-		infoDIV.select('#info2_cont').style('width', '12%').style('height','70px').html( '<b>' + fltr_circles_int.data().length + '</b>'+'</br></br><b>'+fltr_circles_int_hostile.data().length +'</b></br><b>'+fltr_circles_int_allied.data().length+'</b>'  ).style('font-size', '11.5px')
+		infoDIV.select('#info2').style('width', '88%').style('height','70px').html('<b>Total count of MID (including war) both countries involved:</b></br></br> - Hostile relations:</br></br> - Allied relations:').style('font-size', '11.5px')
+		infoDIV.select('#info2_cont').style('width', '12%').style('height','70px').html( '<b>' + fltr_circles_int.data().length + '</b>'+'</br></br><b>'+fltr_circles_int_hostile.data().length +'</b></br></br><b>'+fltr_circles_int_allied.data().length+'</b>'  ).style('font-size', '11.5px')
 
 		
 		// infoDIV.select('#info3').html('- Hostile relations:　　'+ '<b>' + fltr_circles_int_hostile.data().length + '</b>'  )
