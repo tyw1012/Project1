@@ -281,6 +281,22 @@ circle.legend_hostile_war{
   color: #fff;
   border-radius: 4px;
 }
+.d3-tip_country {
+  position: absolute !important;
+  top: 95px !important;
+  right: 50px !important;
+  left: 30px !important;
+  text-align: center;
+  width:90px;
+  line-height: 1.7;
+  font-weight: bold;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: black;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 
 </style>
 
@@ -516,16 +532,24 @@ var circleTip = d3.tip()
 				.attr('class', 'd3-tip')
 	  			.offset([-10, 0])
 	  			.html(function(d) {
-	    		return d.war ==0? '<strong><span style="color:white">' +'Dispute #'+ d.DispNum + "</span>" : '<strong><span style="color:white">' + d.war_name + "</span>" });
-	    		
+	    		return d.war ==0? '<span style="color:white">' +'Dispute #'+ d.DispNum + "</span>" : '<strong><span style="color:white">' + d.war_name + "</span>" });
+
 var countryTip =  d3.tip()
-				.attr('class', 'd3-tip')
-	  			.offset([-10, 0])
+				.attr('class', 'd3-tip_country')
+	  			.offset([-5, 0])
 	  			.html(function(d) {
 	    		return  '<strong><span style="color:white">'+ d.properties.CNTRY_NAME + "</span>"  });
 
+var circleTip_drawn = d3.tip()
+						.direction('w')
+						.attr('class', 'd3-tip')
+						.offset([0, -10])
+						.html(function(d) {
+			    		return d.war ==0? '<span style="color:white">' +'Dispute #'+ d.DispNum + "</span>" : '<strong><span style="color:white">' + d.war_name + "</span>" });
+
 g_map.call(circleTip);
 g_map.call(countryTip);
+boardSVG_circle.call(circleTip_drawn);
 
 queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -695,15 +719,16 @@ function mouseoverMap(d){
   // Highlight hovered province
   if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted') ){
    d3.select(this).classed('mapHovered', true );
-
+   countryTip.show(d);
   }
-    console.log(d)
-  // Draw effects
+    
+  
 }
 
 function mouseoutMap(d){
 	if (!d3.select(this).classed('mapClicked') && !d3.select(this).classed('mapHighlighted')){
 	d3.select(this).classed('mapHovered', false ).classed('mapNotClicked',true);
+	 countryTip.hide(d);
 	}
   
 }
@@ -714,8 +739,18 @@ function mouseoverCircle(d){
 
 	if (map_clicked == 0){
 
-	 d3.select(this).attr('r', dflt_radius + 1 );	
-	 circleTip.show(d);
+
+		if(!d3.select(this).classed('circleFiltered')){
+			d3.select(this).attr('r', dflt_radius + 1);
+			circleTip.show(d);
+		}
+
+		if( d3.select(this).classed('circleFiltered')){
+			d3.select(this).attr('r', dflt_radius + 2);
+			circleTip.show(d);
+		}
+
+	
 
 	}
 
@@ -753,15 +788,23 @@ function mouseoverCircle(d){
 
 function mouseoutCircle(d){
 
-		circleTip.hide(d);
+		
 
 	if (!d3.select(this).classed('circleClicked')){
 
 
 		if (map_clicked == 0){
 
-		 d3.select(this).attr('r', dflt_radius  );	
-			circleTip.hide(d);
+			if(!d3.select(this).classed('circleFiltered')){
+				d3.select(this).attr('r', dflt_radius );
+				circleTip.hide(d);
+			}
+
+			if( d3.select(this).classed('circleFiltered')){
+				d3.select(this).attr('r', dflt_radius + 1);
+				circleTip.hide(d);
+			}
+
 		}
 
 		else if(map_clicked == 1){
@@ -817,6 +860,8 @@ function mouseoverCircle_board(d){
 	   	.transition().duration(150)
 	   	.attr('r',int_radius + 2);
 	   }
+
+	  circleTip_drawn.show(d);
 	}
 }
 
@@ -840,6 +885,8 @@ function mouseoutCircle_board(d){
 	   	.transition().duration(150)
 	   	.attr('r', int_radius);
 	    }
+
+	  circleTip_drawn.hide(d); 
 	}
 }
 
@@ -1690,9 +1737,6 @@ function dragged(h){
 
 	d3.select('.borderDiv').select('svg').select('text').text('Border lines based on: '+ timeFormat(now));
 
-	console.log(now);
-
-	// console.log('features', initial_features)
 	var new_features = initial_features.filter(function(d){return new Date(d.properties.COWSYEAR + '-' + d.properties.COWSMONTH) <= now && new Date(d.properties.COWEYEAR + '-' + d.properties.COWEMONTH) >= now })
 
 	console.log('new', new_features)
