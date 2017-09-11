@@ -117,6 +117,7 @@
 
 .transparent{
 	opacity : 0;
+	pointer-events:none;
 }
 .transparent2{
 	opacity : 0.25;
@@ -518,6 +519,8 @@ var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolate
 					
 
 var infoDIV = d3.select('#board_info');
+
+
 var fltr_circles, fltr_circles_war, fltr_circles_int, fltr_circles_int_allied, fltr_circles_int_hostile, fltr_circles_int_war;		
 
 d3.select('#board_header').append('div')
@@ -550,6 +553,8 @@ var circleTip_drawn = d3.tip()
 g_map.call(circleTip);
 g_map.call(countryTip);
 boardSVG_circle.call(circleTip_drawn);
+
+
 
 queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -613,7 +618,7 @@ for (var i = 0; i <= features.length-1; i++){
 }
 
 
-dragged(new Date('1991-12-31'));
+dragged(new Date('1988-12-31'));
 
 console.log('scale', map_timeScale(new Date('1946-03')))
 
@@ -708,6 +713,11 @@ d3.select('#time_legend').select('svg').append('text').text('Fatality level').st
 d3.select('#time_legend').select('svg').append('text').text('H').attr('x', parseInt(bm_width)+ 63).attr('y', 34);
 d3.select('#time_legend').select('svg').append('text').text('L').attr('x', parseInt(bm_width)- 83).attr('y', 34)
 
+infoDIV.select('#info1').html('No selection');
+infoDIV.select('#info2').html('Total count of MID (including war): ')
+infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
+infoDIV.select('#info3').html('Total count of War: ')
+infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
 
 
 
@@ -1221,6 +1231,7 @@ var allCircles, allRects;
 					d.clicked = true;
 					map_clicked = 1
 					
+
 					describe(d3.select(this));
 					drawCircle();
 					drawLegends(d);
@@ -1648,6 +1659,16 @@ function brushed() {
   	})
   	.classed('circleFiltered', false).classed('transparent', true).transition().attr('r', dflt_radius)
 
+  	var filter_all= g_map.selectAll('.circleFiltered').data().length;
+  	var filter_all_war = g_map.selectAll('.war.opaque.circleFiltered').data().length;
+
+  	
+
+  	infoDIV.select('#info2_cont').html( '<b>' + filter_all + '</b>').style('font-size', '11.5px')
+  	infoDIV.select('#info3_cont').html( '<b>' + filter_all_war + '</b>').style('font-size', '11.5px')
+
+
+
    }
 
   else if (map_clicked == 1){
@@ -1797,6 +1818,8 @@ function translateAlong(path) {
 function initialize(){
 
 
+    dragged(new Date('1988-12-31'));
+    
 	g_map.selectAll('.dispute,.war')
 	.attr('r', function(){return d3.select(this).classed('war')? war_radius : dflt_radius})
 	.attr('class',function(){return d3.select(this).classed('war')? 'war circleNotClicked opaque' : 'dispute circleNotClicked'})
@@ -1843,7 +1866,6 @@ function initialize(){
 	g_map.selectAll('.mapFiltered').attr('style',null).attr('filter',null).classed('mapFiltered',false).classed('mapNotClicked', true);
 
 	infoDIV.selectAll('div').html('');
-	infoDIV.select('#info1').html('No selection.')
 	infoDIV.select('#info2').style('height','20px');
 	infoDIV.select('#info2_cont').style('height','20px');
 	infoDIV.select('#info1').style('width','57.5%');
@@ -1861,6 +1883,13 @@ function initialize(){
 
 	g_map.selectAll('circle').transition().attr('r',dflt_radius);
 
+
+	infoDIV.select('#info1').html('No selection');
+	infoDIV.select('#info2').html('Total count of MID (including war): ')
+	infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
+	infoDIV.select('#info3').html('Total count of War: ')
+	infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
+	
 
 }
 
