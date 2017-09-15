@@ -160,9 +160,9 @@
 	position: absolute;
 	left: 15px;
 	bottom: 20px;
-	height: 100px;
+	height: 40px;
 	width: 50%; 
-	pointer-events:none;
+	/*pointer-events:none;*/
 }
 .legendDiv2{
 	font-family: arial;
@@ -198,7 +198,7 @@
 }
 .track-overlay {
   pointer-events: stroke;
-  stroke-width: 50px;
+  stroke-width: 45px;
   stroke: transparent;
   cursor: crosshair;
 }
@@ -298,6 +298,16 @@ circle.legend_hostile_war{
   font-size: 12px;
 }
 
+.d3-tip_typology {
+	/*text-align: center;*/
+	font-size: 12px;
+  line-height: 1.7;
+  /*font-weight: bold;*/
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border-radius: 3px;
+}
 
 </style>
 
@@ -318,7 +328,7 @@ circle.legend_hostile_war{
 	<div id = 'board_axis' style = "width:100%; height: 75px"></div>
 	<div id = 'board_time' style = "width:100%; height: calc(73% - 145px); overflow:auto;"></div>
 	<div id = 'time_legend' style = "width:100%; height:45px; border-bottom: 1px solid #667a82;"></div>
-	<div id = 'board_info' style = "width:100%; height: 27%; ">
+	<div id = 'board_info' style = "width:100%; height: 27%; overflow:auto">
 		<h3 id='info1' style="width: 57.5%; height:40px; float:left"></h3>
 		<h5 id='timeTeller' style="width: 42.5%; height:35px; float:left; margin-top: 6px"></h5>
 
@@ -456,7 +466,7 @@ var title = d3.select('#main').append('div').attr('class', 'titleDIV');
 title.append('h1').attr('class', 'mainTitle').text('World Militarized Interstate Disputes and Wars ')
 title.append('span').attr('class', 'subTitle').attr('y', 60).text('Since after the World War II until the fall of the Soviet Union (1946 - 1991)');
 
-var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').append('g').classed('slider',true).attr('transform', 'translate(3,30)')
+var borderSlider = d3.select('#main').append('div').attr('class', 'borderDiv').append('svg').attr('height',45).append('g').classed('slider',true).attr('transform', 'translate(3,30)')
 
 borderSlider.append('line').attr('x1', map_timeScale.range()[0]).attr('x2', map_timeScale.range()[1]).style('stroke-width', "2px").style('stroke', '#b8ccd8')
 	.select(function(){return this.parentNode.appendChild(this.cloneNode(true));})
@@ -550,9 +560,16 @@ var circleTip_drawn = d3.tip()
 						.html(function(d) {
 			    		return d.war ==0? '<span style="color:white">' +'Dispute #'+ d.DispNum + "</span>" : '<strong><span style="color:white">' + d.war_name + "</span>" });
 
+var typologyTip = d3.tip()
+				  // .direction('e')
+				  .attr('class','d3-tip_typology')
+				  .offset([-60,-12])
+				  .html(function(d){ return '<span style ="color:white">'+'<b>Militarized Interstate Disputes (MID)</b> are united historical cases of conflict in which the threat,</br> display or use of military force short of war by one member state is explicitly directed towards</br> the government, official representatives, official forces, property, or territory of another state.</br> Disputes are composed of incidents that range in intensity from threats to use force to actual <br>combat short of war </strong>(Jones et al. 1996: 163). To put it more simple, "A conflict is described</br> as an MID if it causes  fewer than 1000 deaths, and some military force is used."'});
+
 g_map.call(circleTip);
 g_map.call(countryTip);
 boardSVG_circle.call(circleTip_drawn);
+legends.call(typologyTip);
 
 
 
@@ -714,7 +731,7 @@ d3.select('#time_legend').select('svg').append('text').text('H').attr('x', parse
 d3.select('#time_legend').select('svg').append('text').text('L').attr('x', parseInt(bm_width)- 83).attr('y', 34)
 
 infoDIV.select('#info1').html('No selection');
-infoDIV.select('#info2').html('Total count of MID (including war): ')
+infoDIV.select('#info2').html('Total count of MID (plus war): ')
 infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 infoDIV.select('#info3').html('Total count of War: ')
 infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
@@ -1664,8 +1681,10 @@ function brushed() {
 
   	
 
-  	infoDIV.select('#info2_cont').html( '<b>' + filter_all + '</b>').style('font-size', '11.5px')
-  	infoDIV.select('#info3_cont').html( '<b>' + filter_all_war + '</b>').style('font-size', '11.5px')
+  	infoDIV.select('#info2_cont').html( '<b>' + filter_all + '</b>')
+  	// .style('font-size', '11.5px')
+  	infoDIV.select('#info3_cont').html( '<b>' + filter_all_war + '</b>')
+  	// .style('font-size', '11.5px')
 
 
 
@@ -1701,7 +1720,8 @@ function brushed() {
   	
 
   	infoDIV.select('#info2_cont').html( '<b>' + filter_involved + '</b>').style('font-size', '11.5px')
-  	infoDIV.select('#info3_cont').html( '<b>' + filter_involved_war + '</b>').style('font-size', '11.5px')
+  	infoDIV.select('#info3_cont').html( '<b>' + filter_involved_war + '</b>')
+  	// .style('font-size', '11.5px')
   }
 
   else {
@@ -1736,8 +1756,9 @@ function brushed() {
 
   var filter_intersected_war = g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('war')}).data().length;
 
-  infoDIV.select('#info2_cont').html( '<b>' + filter_intersected + '</br></br>' + filter_intersected_hostile + '</br>' + filter_intersected_allied)
-  infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>').style('font-size', '11.5px')
+  infoDIV.select('#info2_cont').html( '<b>' + filter_intersected + '</br></br>' + filter_intersected_hostile + '</br></br>' + filter_intersected_allied)
+  infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>')
+  // .style('font-size', '11.5px')
 
    }
 
@@ -1870,22 +1891,30 @@ function initialize(){
 	infoDIV.select('#info2_cont').style('height','20px');
 	infoDIV.select('#info1').style('width','57.5%');
 	infoDIV.select('#timeTeller').style('width','42.5%');
+	infoDIV.select('#info3').style('margin-top', 0)
+	infoDIV.select('#info3_cont').style('margin-top', 0)
 
 	boardSVG_circle.selectAll('text').remove();
 
 	legends.selectAll('.legend_dispute,.legend_war').remove();
 	legends_2.selectAll('.legendRects').remove();
+	legends.select('.definition').remove();
 
-	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 80).classed('legend_dispute dispute', true);
-	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',35).attr('y',84);
-	legends.append('circle').attr('r', 6).attr('cx', 180).attr('cy', 80).classed('legend_war war', true)
-	legends.append('text').classed('legend_war',true).text('War').attr('x',195).attr('y',84);
+	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 20).classed('legend_dispute dispute', true);
+	legends.append('text').classed('legend_dispute', true).text('Interstate Dispute').attr('x',35).attr('y',24);
+	legends.append('circle').attr('r', 6).attr('cx', 160).attr('cy', 20).classed('legend_war war', true)
+	
+	legends.append('text').classed('legend_war',true).text('Interstate War').attr('x',175).attr('y',24);
+
+	legends.append('text').classed('definition', true).text('Typology?').attr('x', 270).attr('y', 24).style('opacity', 0.3).style('font-size', 11)
+	.on('mouseover', typologyTip.show)
+	.on('mouseout', typologyTip.hide)
 
 	g_map.selectAll('circle').transition().attr('r',dflt_radius);
 
 
 	infoDIV.select('#info1').html('No selection');
-	infoDIV.select('#info2').html('Total count of MID (including war): ')
+	infoDIV.select('#info2').html('Total count of MID (plus war): ')
 	infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 	infoDIV.select('#info3').html('Total count of War: ')
 	infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
@@ -1899,15 +1928,26 @@ function drawLegends(d){
 
 		legends.selectAll('.legend_dispute,.legend_war').remove();
 		legends_2.selectAll('.legendRects').remove();
+		legends.select('.definition').remove();
 
-	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 80).classed('legend_dispute dispute', true);
-	legends.append('text').classed('legend_dispute', true).text('Dispute').attr('x',35).attr('y',84);
-	legends.append('circle').attr('r', 6).attr('cx', 180).attr('cy', 80).classed('legend_war war', true)
-	legends.append('text').classed('legend_war',true).text('War').attr('x',195).attr('y',84);
+
+	legends.append('circle').attr('r', 7).attr('cx', 20).attr('cy', 20).classed('legend_dispute dispute', true);
+	legends.append('text').classed('legend_dispute', true).text('Interstate Dispute').attr('x',35).attr('y',24);
+	legends.append('circle').attr('r', 6).attr('cx', 160).attr('cy', 20).classed('legend_war war', true)
+	
+	legends.append('text').classed('legend_war',true).text('Interstate War').attr('x',175).attr('y',24);
+
+	legends.append('text').classed('definition', true).text('Typology?').attr('x', 270).attr('y', 24).style('opacity', 0.3).style('font-size', 11)
+	.on('mouseover', typologyTip.show)
+	.on('mouseout', typologyTip.hide)
+
+
+
 	}
 
 	else if(map_clicked == 1){
 
+		legends.select('.definition').remove()
 		legends.selectAll('.legend_dispute,.legend_war').remove();
 		legends_2.selectAll('.legendRects').remove();
 
@@ -1916,8 +1956,8 @@ function drawLegends(d){
 		if (document.querySelector('.circleHighlighted') !== null) {
 
 
-			var d_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_dispute dispute legend_high', true);
-			var d_high_text = legends.append('text').classed('legend_dispute legend_high', true).text('Dispute where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',84);
+			var d_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_dispute dispute legend_high', true);
+			var d_high_text = legends.append('text').classed('legend_dispute legend_high', true).text('Dispute where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',24);
 
 			legendLength = legendLength + d_high_text.property('textContent').length*6.5 + 25
 
@@ -1933,8 +1973,8 @@ function drawLegends(d){
 		if(document.querySelector('.circleHighlighted_war') !== null){
 
 
-			var w_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_war war legend_high_war', true);
-			var w_high_text = legends.append('text').classed('legend_war legend_high_war', true).text('War where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',84);
+			var w_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_high_war', true);
+			var w_high_text = legends.append('text').classed('legend_war legend_high_war', true).text('War where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',24);
 
 			legendLength = legendLength + w_high_text.property('textContent').length*6.5 + 25
 		}
@@ -1985,8 +2025,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.dispute.intersected.hostile') !== null) {
 
-			var d_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_dispute dispute legend_hostile', true);
-			var d_hostile_text = legends.append('text').classed('legend_dispute legend_hostile', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',84);
+			var d_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_dispute dispute legend_hostile', true);
+			var d_hostile_text = legends.append('text').classed('legend_dispute legend_hostile', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',24);
 		
 			
 			legendLength = legendLength + d_hostile_text.property('textContent').length*6.5 + 10
@@ -1994,8 +2034,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.dispute.intersected.allied') !== null){
 
-			var d_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_dispute dispute legend_allied', true);
-			var d_allied_text = legends.append('text').classed('legend_dispute legend_allied', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',84);
+			var d_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_dispute dispute legend_allied', true);
+			var d_allied_text = legends.append('text').classed('legend_dispute legend_allied', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',24);
 
 			legendLength = legendLength + d_allied_text.property('textContent').length*6.5 + 10
 
@@ -2004,8 +2044,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.war.intersected.hostile') !== null) {
 
-			var w_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_war war legend_hostile_war', true);
-			var w_hostile_text = legends.append('text').classed('legend_war legend_hostile_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',84);
+			var w_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_hostile_war', true);
+			var w_hostile_text = legends.append('text').classed('legend_war legend_hostile_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',24);
 
 			legendLength = legendLength + w_hostile_text.property('textContent').length*6.5 + 10
 
@@ -2013,8 +2053,8 @@ function drawLegends(d){
 
 		if (document.querySelector('.war.intersected.allied') !== null) {
 
-			var w_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 80).classed('legend_war war legend_allied_war', true);
-			var w_allied_text = legends.append('text').classed('legend_war legend_allied_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',84);
+			var w_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_allied_war', true);
+			var w_allied_text = legends.append('text').classed('legend_war legend_allied_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',24);
 
 			legendLength = legendLength + w_hostile_text.property('textContent').length*6.5 + 10
 
@@ -2048,10 +2088,14 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
 		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
-		infoDIV.select('#info2').html('<b>Total count of MID (including war) involved:</b>'  ).style('font-size', '11.5px')
-		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>').style('font-size', '11.5px')
-		infoDIV.select('#info3').style('margin-left', '0px').style('margin-top', '0px').html('<b>Total count of War involved:</b>').style('font-size', '11.5px')
-		infoDIV.select('#info3_cont').style('margin-top', '0px').html('<b>' +fltr_circles_war.data().length+'</b>').style('font-size', '11.5px')
+		infoDIV.select('#info2').html('<b>Total count of MID (plus war) involved:</b>'  )
+		// .style('font-size', '12x')
+		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>')
+		// .style('font-size', '12px')
+		infoDIV.select('#info3').style('margin-left', '0px').style('margin-top', '0px').html('<b>Total count of War involved:</b>')
+		// .style('font-size', '12px')
+		infoDIV.select('#info3_cont').style('margin-top', '0px').html('<b>' +fltr_circles_war.data().length+'</b>')
+		// .style('font-size', '12px')
 
 		infoDIV.select('#info4').style('margin-left','5px').style('margin-top','7px').append('ul').style('margin-top','5px').classed('warList',true);
 		for (var i = 0; i <= warList.length-1; i++){
@@ -2080,15 +2124,17 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(storedSelection1.CNTRY_NAME +' : ' +selection.data()[0].properties.CNTRY_NAME).style('font-size', '17px')
 		// infoDIV.select('#info2').html('COWCODE: ' + selection.data()[0].properties.CNTRY_NAME +' (COWCODE: '+selection.data()[0].properties.COWCODE+')')
-		infoDIV.select('#info2').style('width', '88%').style('height','70px').html('<b>Total count of MID (including war) both countries involved:</b></br></br> - Hostile relations:</br></br> - Allied relations:').style('font-size', '11.5px')
-		infoDIV.select('#info2_cont').style('width', '12%').style('height','70px').html( '<b>' + fltr_circles_int.data().length + '</b>'+'</br></br><b>'+fltr_circles_int_hostile.data().length +'</b></br></br><b>'+fltr_circles_int_allied.data().length+'</b>'  ).style('font-size', '11.5px')
+		infoDIV.select('#info2').style('width', '88%').style('height','70px').html('<b>Total count of MID (plus war) both countries involved:</b></br></br> - Hostile relations:</br></br> - Allied relations: </br>')
+			// .style('font-size', '12x')
+		infoDIV.select('#info2_cont').style('width', '12%').style('height','70px').html( '<b>' + fltr_circles_int.data().length + '</b>'+'</br></br><b>'+fltr_circles_int_hostile.data().length +'</b></br></br><b>'+fltr_circles_int_allied.data().length+'</b>'  )
+		   // .style('font-size', '12px')
 
 		
 		// infoDIV.select('#info3').html('- Hostile relations:　　'+ '<b>' + fltr_circles_int_hostile.data().length + '</b>'  )
 		// infoDIV.select('#info4').html('- Allied relations: 　　'+ '<b>' + fltr_circles_int_allied.data().length + '</b>'  )
 		
-		infoDIV.select('#info3').style('width','88%').style('margin-top', '8px').html('<b>Total count of War both countries involved:</b>' )
-		infoDIV.select('#info3_cont').style('width','12%').style('margin-top', '8px').html('<b>' +fltr_circles_int_war.data().length+'</b>' )
+		infoDIV.select('#info3').style('width','88%').style('margin-top', '19px').html('<b>Total count of War both countries involved:</b>' )
+		infoDIV.select('#info3_cont').style('width','12%').style('margin-top', '19px').html('<b>' +fltr_circles_int_war.data().length+'</b>' )
 		// infoDIV.select('#info4')
 
 		infoDIV.select('#info4').select('ul').remove();
@@ -2118,13 +2164,15 @@ function describe(selection){
 
 
 	infoDIV.select('#info2').html('<b>Time:</b> ' + timeFormat(parseTime(selection.data()[0].Start)) + ' - ' + timeFormat(parseTime(selection.data()[0].End))).style('font-size', '11.5px');
-	infoDIV.select('#info3').html('<b>Fatality:</b> '+ fatalityStringScale(selection.data()[0].Fatality)).style('font-size', '11.5px');
-	infoDIV.select('#info4').html('<b>Involved countries:').style('font-size', '11.5px')
+	infoDIV.select('#info3').html('<b>Fatality:</b> '+ fatalityStringScale(selection.data()[0].Fatality))
+	// .style('font-size', '12px');
+	infoDIV.select('#info4').html('<b>Involved countries:')
+	// .style('font-size', '12px')
 	var temp = infoDIV.select('#info5').append('svg');
 
 
 		temp.append('rect').attr('fill','#0cafcc').attr('x', 10).attr('y', 6).attr('width',12).attr('height', 12);
-		temp.append('text').attr('x', 28).attr('y',15).text('Initiator\'s side: ').style('font-size', 11.5)
+		temp.append('text').attr('x', 28).attr('y',15).text('Initiator\'s side: ').style('font-size', 12)
 		temp.append('text').attr('x', 120).attr('y',15)
  			.text(
 			function(){    
@@ -2145,10 +2193,10 @@ function describe(selection){
 				   	}
 			
 			)
-			.classed('a_list',true).style('font-size', 11.5)
+			.classed('a_list',true).style('font-size', 12)
 
 		temp.append('rect').attr('fill','#f7c062').attr('x', 10).attr('y', 27).attr('width',12).attr('height', 12);
-		temp.append('text').attr('x', 28).attr('y',37).text('Target\'s side: ').style('font-size', 11.5)
+		temp.append('text').attr('x', 28).attr('y',37).text('Target\'s side: ').style('font-size', 12)
 		temp.append('text').attr('x', 120).attr('y',37)
  			.text(
 			function(){    
@@ -2169,7 +2217,7 @@ function describe(selection){
 				   	}
 			
 			)
-			.classed('b_list',true).style('font-size', 11.5)
+			.classed('b_list',true).style('font-size', 12)
 
 		infoDIV.select('#info5').style('overflow','auto');
 
