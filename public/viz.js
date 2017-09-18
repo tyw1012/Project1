@@ -344,15 +344,17 @@ d3.select('#time_legend').append('svg')
 		.style('fill', function(d){return fatalityScale(d)})
 		.on('mouseover', fatalityTip.show)
 		.on('mouseout', fatalityTip.hide)
+		.on('click', filterByFatality);
 
 d3.select('#time_legend').select('svg').append('rect')
 	.attr('x', parseInt(bm_width)-86.5)
 	.attr('y',7).attr('width',16)
 	.attr('height', 16)
 	.style('fill','black')
-	.datum([-9])
+	.data([-9])
 	.on('mouseover', fatalityTip.show)
-	.on('mouseout', fatalityTip.hide);
+	.on('mouseout', fatalityTip.hide)
+	.on('click', filterByFatality);
 
 d3.select('#time_legend').select('svg').append('text').attr('id','fatality_level')
 	.text('Fatality level')
@@ -1400,7 +1402,12 @@ function initialize(){
 	.style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  });
 
 
-	allCircles.enter().append('circle').attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'}).attr('cx', 30).attr('cy', function(d,i){return i*40 + 25} ).attr('r',0).style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
+	allCircles.enter().append('circle')
+		.attr('class', function(d){return d.war==0?'circleDrawn':'circleDrawn_war'})
+		.attr('cx', 30)
+		.attr('cy', function(d,i){return i*40 + 25} )
+		.attr('r',0)
+		.style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
 		.on('mouseover', mouseoverCircle_board)
 		.on('mouseout', mouseoutCircle_board)
 		.on('click', selectCircle_board)
@@ -1803,4 +1810,41 @@ function resize(){
 	.style('height', d3.select('.timeWrapper').property('clientHeight')+10);
 	brushableG.select('.handle')
 	.style('height', d3.select('.timeWrapper').property('clientHeight')+10);
+}
+
+function filterByFatality(d){
+
+	console.log(d);
+	console.log('filtered');
+	g_map.selectAll('circle').filter(function(d_){
+		return parseInt(d_.Fatality) !== d && !d3.select(this).classed('transparent')})
+	.	classed('transparent2', true).classed('opaque', false);
+
+	// var temp = g_map.selectAll('circle')
+	// 		   .filter(function(d_){return d_.Fatality == d})
+	// 	temp.classed('dispute')? temp.classed('transparent', false)
+	// 	:temp.classed('transparent', false).classed('opaque', true);
+
+	var temp = g_map.selectAll('circle').filter(function(d_){
+		return parseInt(d_.Fatality) == d && !d3.select(this).classed('transparent')});
+	temp.classed('transparent2', false).classed('opaque', true);
+
+	console.log(temp)
+	var fatalityFiltered = boardSVG_circle.selectAll('circle')
+	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
+
+// var newBind_path = g_map.selectAll('path.map').data(new_features)
+
+// 	newBind_path.exit().remove();
+
+// 	newBind_path.enter().insert('path', '.circleNotClicked').merge(newBind_path)
+
+	fatalityFiltered.exit().transition().attr('r', 0).remove();
+	fatalityFiltered.enter().append('circle').merge(fatalityFiltered)
+	.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'})
+	.attr('cy', function(d,i){return i*40 + 25} )
+	.attr('r',0)
+	.transition().duration(1000)
+	.attr('r', 12).attr('cx', 30)
+
 }

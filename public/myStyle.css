@@ -108,6 +108,10 @@ body{
 	opacity : 0;
 	pointer-events:none;
 }
+.transparent2{
+	opacity: 0;
+	pointer-events:none;
+}
 
 .opaque{
 	opacity:1;
