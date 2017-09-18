@@ -164,6 +164,7 @@ var newScale, map_newScale, initial_features,
     storedValue = [0, bm_width-10],
     storedSelection1, storedSelection2, data;
 
+var hostileStringScale = d3.scaleOrdinal().domain([2,3,4,5]).range(['T','D','U','W'])
 
 var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl)
 					.range([d3.rgb('#4c0000'), d3.rgb('#ed0202')])
@@ -266,7 +267,7 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].Start = data[i].StYear + '-' + data[i].StMon
 		data[i].End = data[i].EndYear + '-' + data[i].EndMon
 		data[i].Fatality = data_2[i].Fatality
-				
+		data[i].HostLev = data_2[i].HostLev		
 		delete data[i].key;
 		delete data[i].values;
 	}
@@ -325,6 +326,15 @@ timeRectsG.selectAll('rect')
 			 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
 		.attr('height', 24)
 
+timeRectsG.selectAll('text')
+		.data(data.sort(sortByDateAscending))
+		.enter()
+		.append('text')
+		.attr('x', function(d){return newScale==undefined ? 3 + timeScale(parseTime(d.Start)) + d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1])
+									: 3 + newScale(parseTime(d.Start)) + d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+		.attr('y', function(d,i){return i*40 + 12.5 + 8})
+		.text(function(d){return hostileStringScale(d.HostLev)})
+
 brushableG.select('.selection').style('height', d3.select('.timeWrapper').property('clientHeight')+10);
 brushableG.select('.handle').style('height', d3.select('.timeWrapper').property('clientHeight')+10);
 
@@ -342,6 +352,7 @@ d3.select('#time_legend').append('svg')
 		.attr('width',16)
 		.attr('height', 16)
 		.style('fill', function(d){return fatalityScale(d)})
+		.style('cursor','pointer')
 		.on('mouseover', fatalityTip.show)
 		.on('mouseout', fatalityTip.hide)
 		.on('click', filterByFatality);
@@ -351,6 +362,7 @@ d3.select('#time_legend').select('svg').append('rect')
 	.attr('y',7).attr('width',16)
 	.attr('height', 16)
 	.style('fill','black')
+	.style('cursor','pointer')
 	.data([-9])
 	.on('mouseover', fatalityTip.show)
 	.on('mouseout', fatalityTip.hide)
@@ -1077,7 +1089,19 @@ function drawCircle(){
 		newBind_circle = boardSVG_circle.selectAll('circle').data(data_highlighted, function(d){
 			return d.DispNum})
 		newBind_circle.exit().transition().attr('r', 0).remove();
-		newBind_circle.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'}).transition().duration(1000).attr('cy', function(d,i){return i*40 + 25} );
+		newBind_circle.transition().duration(1000).attr('cy', function(d,i){ return i*40 + 25})
+		newBind_circle.enter().append('circle')
+		.attr('cx', 30)
+		.attr('cy', function(d,i){return i*40 + 25} )
+		.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'})
+		.attr('r',0)
+		.on('mouseover', mouseoverCircle_board)
+		.on('mouseout', mouseoutCircle_board)
+		.on('click', selectCircle_board)
+		.transition().duration(1000)
+		.attr('r',12)
+		// .style('stroke',function(d){return d3.select(this).classed('circleDrawn')? '#fff' : '#014e66'  })
+		
 
 		boardSVG_circle.selectAll('.circleDrawn').style('fill','#ff7b4c')
 		boardSVG_circle.selectAll('.circleDrawn_war').style('stroke', '#ff7b4c');
@@ -1086,6 +1110,18 @@ function drawCircle(){
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y', function(d,i){
 			return i*40 + 12.5})
+
+		newBind_rect.enter().append('rect')
+		.attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
+		.attr('width', 0)
+		.attr('y', function(d,i){return i*40 + 12.5})
+		.attr('class', 't_rects')
+		.transition()
+		.duration(700)
+		.attr('width',
+			 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+		.style('fill', function(d){return fatalityScale(d.Fatality).toString()})
+		.attr('height', 24)
 		
 		}
 
@@ -1143,11 +1179,46 @@ function drawCircle(){
 			:      d.allied == true  && d.war == 0? 'fff'
 			:      									'#5b41f4'} );
 
+		newBind_circle.enter().append('circle')
+		.attr('cx', 30)
+		.attr('cy', function(d,i){return i*40 + 25} )
+		.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'})
+		.attr('r',0)
+		.on('mouseover', mouseoverCircle_board)
+		.on('mouseout', mouseoutCircle_board)
+		.on('click', selectCircle_board)
+		.transition().duration(1000)
+		.attr('r',12)
+		.style('fill', function(d){
+			return d.allied == false && d.war == 0? '#ff6060' 
+			: 	   d.allied == false && d.war == 1? '#fff' 
+			:      d.allied == true  && d.war == 0? '#5b41f4'
+			:      									'#fff'} )
+		.style('stroke', function(d){
+			return d.allied == false && d.war == 0? '#fff' 
+			: 	   d.allied == false && d.war == 1? '#ff6060' 
+			:      d.allied == true  && d.war == 0? 'fff'
+			:      									'#5b41f4'} );
+
+
 		newBind_rect = timeRectsG.selectAll('rect').data(data_intersected, function (d){return d.DispNum}).attr('class', 't_rects');
 
 		newBind_rect.exit().transition().attr('width', 0).remove();
 		newBind_rect.transition().duration(1000).attr('y',function(d,i){
 			return i*40 + 12.5})
+
+		newBind_rect.enter().append('rect')
+		.attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
+		.attr('width', 0)
+		.attr('y', function(d,i){return i*40 + 12.5})
+		.attr('class', 't_rects')
+		.transition()
+		.duration(700)
+		.attr('width',
+			 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+		.style('fill', function(d){return fatalityScale(d.Fatality).toString()})
+		.attr('height', 24)
+
 		}
 
 	
@@ -1814,30 +1885,17 @@ function resize(){
 
 function filterByFatality(d){
 
-	console.log(d);
-	console.log('filtered');
 	g_map.selectAll('circle').filter(function(d_){
 		return parseInt(d_.Fatality) !== d && !d3.select(this).classed('transparent')})
-	.	classed('transparent2', true).classed('opaque', false);
-
-	// var temp = g_map.selectAll('circle')
-	// 		   .filter(function(d_){return d_.Fatality == d})
-	// 	temp.classed('dispute')? temp.classed('transparent', false)
-	// 	:temp.classed('transparent', false).classed('opaque', true);
+	.classed('transparent2', true).classed('opaque', false);
 
 	var temp = g_map.selectAll('circle').filter(function(d_){
 		return parseInt(d_.Fatality) == d && !d3.select(this).classed('transparent')});
 	temp.classed('transparent2', false).classed('opaque', true);
 
-	console.log(temp)
+	
 	var fatalityFiltered = boardSVG_circle.selectAll('circle')
 	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
-
-// var newBind_path = g_map.selectAll('path.map').data(new_features)
-
-// 	newBind_path.exit().remove();
-
-// 	newBind_path.enter().insert('path', '.circleNotClicked').merge(newBind_path)
 
 	fatalityFiltered.exit().transition().attr('r', 0).remove();
 	fatalityFiltered.enter().append('circle').merge(fatalityFiltered)
@@ -1846,5 +1904,40 @@ function filterByFatality(d){
 	.attr('r',0)
 	.transition().duration(1000)
 	.attr('r', 12).attr('cx', 30)
+	.style('fill', function(d){return map_clicked==0 && d.war==0? '#014e66'
+					  :map_clicked==0 && d.war==1? '#fff'
+					  :map_clicked==1 && d.war==0? '#ff7b4c'
+					  :map_clicked==1 && d.war==1? '#fff'
+					  :map_clicked==2 && d.war==0 && d.allied==true? '#5b41f4'
+					  :map_clicked==2 && d.war==0 && d.allied==false? '#ff6060'
+					  :map_clicked==2 && d.war==1 && d.allied==true? '#fff'
+					  :'#fff'
+				 })
+	.style('stroke', function(d){return map_clicked==0 && d.war==0? '#fff'
+					  :map_clicked==0 && d.war==1? '#014e66'
+					  :map_clicked==1 && d.war==0? '#fff'
+					  :map_clicked==1 && d.war==1? '#ff7b4c'
+					  :map_clicked==2 && d.war==0 && d.allied==true? '#fff'
+					  :map_clicked==2 && d.war==0 && d.allied==false? '#fff'
+					  :map_clicked==2 && d.war==1 && d.allied==true? '#5b41f4'
+					  :'#ff6060'})
+	var fatalityFiltered_rect = timeRectsG.selectAll('rect')
+	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
+
+	fatalityFiltered_rect.exit().transition().attr('width',0).remove();
+	fatalityFiltered_rect.enter().append('rect').merge(fatalityFiltered_rect)
+	.attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
+	.attr('width', 0)
+	.attr('y', function(d,i){return i*40 + 12.5})
+	.attr('class', 't_rects')
+	.transition()
+	.duration(700)
+	.attr('width',
+		 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+	.style('fill', function(d){return fatalityScale(d.Fatality).toString()})
+	.attr('height', 24)
+
+
+
 
 }
