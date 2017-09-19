@@ -383,7 +383,12 @@ circle.legend_hostile_war{
 
 #fatality_level, #hostility_level{
 	font-size: 11.5px;
-	font-weight: lighter;
+	font-weight: bold;
+}
+.fatalityBars{
+
+	fill: red;
+	
 }
 
 #zoom_info{

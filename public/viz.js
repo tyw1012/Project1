@@ -147,6 +147,7 @@ var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',
 
 
 var infoDIV = d3.select('#board_info');
+var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
 
 var Drag_info = d3.select('.timeWrapper').append('div')
 .attr('id', 'drag_info')
@@ -167,7 +168,7 @@ var newScale, map_newScale, initial_features,
 
 var hostileStringScale = d3.scaleOrdinal().domain([2,3,4,5]).range(['T','D','U','W'])
 
-var fatalityScale = d3.scaleLinear().domain([0,6]).interpolate(d3.interpolateHcl)
+var fatalityScale = d3.scaleLinear().domain([-0,6]).interpolate(d3.interpolateHcl)
 					.range([d3.rgb('#4c0000'), d3.rgb('#ed0202')])
 
 var fatalityStringScale = d3.scaleOrdinal().domain([-9,0,1,2,3,4,5,6]).range(['Unknown','None','1-25 deaths','26-100 deaths','101-250 deaths','251-500 deaths','501-999 deaths','1000 deaths or more'])
@@ -268,7 +269,8 @@ for (var i = 0; i<= data.length-1; i++){
 		data[i].Start = data[i].StYear + '-' + data[i].StMon
 		data[i].End = data[i].EndYear + '-' + data[i].EndMon
 		data[i].Fatality = data_2[i].Fatality
-		data[i].HostLev = data_2[i].HostLev		
+		data[i].HostLev = data_2[i].HostLev
+
 		delete data[i].key;
 		delete data[i].values;
 	}
@@ -319,7 +321,6 @@ timeRectsG.selectAll('rect')
 		.attr('width', 0)
 		.attr('y', function(d,i){return i*40 + 12.5})
 		.attr('class', 't_rects')
-		
 		.transition()
 		.duration(700)
 		.style('fill', function(d){return fatalityScale(d.Fatality).toString()})
@@ -394,7 +395,8 @@ d3.select('#time_legend').select('svg').append('g').selectAll('rect').data([2,3,
 .style('fill', '#fff').style('opacity', 0.5)
 .style('cursor','pointer')
 .style('stroke-width', 1)
-.style('stroke', 'black');
+.style('stroke', 'black')
+.on('click', filterByHostility)
 
 d3.select('#time_legend').select('svg').append('text').attr('id','hostility_level')
 	.text('Hostility level')
@@ -403,7 +405,7 @@ d3.select('#time_legend').select('svg').append('text').attr('id','hostility_leve
 
 d3.select('#time_legend').select('svg').append('text')
 	.text('H')
-	.attr('x', parseInt(bm_width)+ 48)
+	.attr('x', parseInt(bm_width)-8)
 	.attr('y', 45)
 	.style('opacity',0.5)
 d3.select('#time_legend').select('svg').append('text')
@@ -412,11 +414,25 @@ d3.select('#time_legend').select('svg').append('text')
 	.attr('y', 45)
 	.style('opacity',0.5)
 
+
+d3.select('#time_legend').select('svg').append('g').selectAll('text')
+	.data(['T','D','U','W'])
+	.enter().append('text')
+	.text(function(d){return d})
+	.attr('x', function(d,i){return i*19 + parseInt(bm_width)-83})
+	.attr('y', 45)
+	.style('opacity',0.6)
+	.style('pointer-events', 'none')
+
+
+
 infoDIV.select('#info1').html('No selection');
 infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
 infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 infoDIV.select('#info3').html('Total count of War: ')
 infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
+
+drawFatalityChart();
 
 }
 
@@ -1927,7 +1943,9 @@ function describe(selection){
 
 			infoDIV.select('#info1').html(selection.data()[0].war_name)
 		}
-		}
+	}
+
+	drawFatalityChart();
 
 }
 
@@ -2029,6 +2047,110 @@ function filterByFatality(d){
 		.text(function(d){return hostileStringScale(d.HostLev)})
 
 
+}
 
+function filterByHostility(d){
+
+	g_map.selectAll('circle').filter(function(d_){
+		return parseInt(d_.HostLev) !== d && !d3.select(this).classed('transparent')})
+	.classed('transparent2', true).classed('circleFiltered', false).classed('opaque', false);
+
+	var temp = g_map.selectAll('circle').filter(function(d_){
+		return parseInt(d_.HostLev) == d && !d3.select(this).classed('transparent')});
+	temp.classed('transparent2', false).classed('circleFiltered', true).classed('opaque',true);
+
+	
+	var hostilityFiltered = boardSVG_circle.selectAll('circle')
+	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
+
+	hostilityFiltered.exit().transition().attr('r', 0).remove();
+	hostilityFiltered.enter().append('circle').merge(hostilityFiltered)
+	.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'})
+	.attr('cy', function(d,i){return i*40 + 25} )
+	.attr('r',0)
+	.transition().duration(1000)
+	.attr('r', 12).attr('cx', 30)
+	.style('fill', function(d){return map_clicked==0 && d.war==0? '#014e66'
+					  :map_clicked==0 && d.war==1? '#fff'
+					  :map_clicked==1 && d.war==0? '#ff7b4c'
+					  :map_clicked==1 && d.war==1? '#fff'
+					  :map_clicked==2 && d.war==0 && d.allied==true? '#5b41f4'
+					  :map_clicked==2 && d.war==0 && d.allied==false? '#ff6060'
+					  :map_clicked==2 && d.war==1 && d.allied==true? '#fff'
+					  :'#fff'
+				 })
+	.style('stroke', function(d){return map_clicked==0 && d.war==0? '#fff'
+					  :map_clicked==0 && d.war==1? '#014e66'
+					  :map_clicked==1 && d.war==0? '#fff'
+					  :map_clicked==1 && d.war==1? '#ff7b4c'
+					  :map_clicked==2 && d.war==0 && d.allied==true? '#fff'
+					  :map_clicked==2 && d.war==0 && d.allied==false? '#fff'
+					  :map_clicked==2 && d.war==1 && d.allied==true? '#5b41f4'
+					  :'#ff6060'})
+	var hostilityFiltered_rect = timeRectsG.selectAll('rect')
+	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
+
+	hostilityFiltered_rect.exit().transition().attr('width',0).remove();
+	hostilityFiltered_rect.enter().append('rect').merge(hostilityFiltered_rect)
+	.attr('x', function(d){return newScale==undefined ? timeScale(parseTime(d.Start)) : newScale(parseTime(d.Start))})
+	.attr('width', 0)
+	.attr('y', function(d,i){return i*40 + 12.5})
+	.attr('class', 't_rects')
+	.transition()
+	.duration(700)
+	.attr('width',
+		 function(d){return newScale == undefined? d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1]) : d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+	.style('fill', function(d){return fatalityScale(d.Fatality).toString()})
+	.attr('height', 24)
+
+	var hostilityFiltered_text = timeRectsG.selectAll('text')
+	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
+	hostilityFiltered_text.exit().transition().style('opacity',0).remove();
+	hostilityFiltered_text.enter().append('text').merge(hostilityFiltered_text)
+	.classed('hostText',true)
+		.attr('x', function(d){return newScale==undefined ? 10 + timeScale(parseTime(d.Start)) + d3.max([timeScale(parseTime(d.End)) - timeScale(parseTime(d.Start)),1])
+									: 3 + newScale(parseTime(d.Start)) + d3.max([newScale(parseTime(d.End)) - newScale(parseTime(d.Start)),1])})
+		.attr('y', function(d,i){return i*40 + 12.5 + 15})
+		.text(function(d){return hostileStringScale(d.HostLev)})
+
+
+}
+
+function drawFatalityChart(){
+
+	 infoDIV.select('#chartSVG').selectAll('rect').remove();
+	 console.log('chart Drawn')
+
+	var x = d3.scaleBand().rangeRound([0, bm_width/2]).padding(0.1),
+    	y = d3.scaleLinear().rangeRound([100, 0]);
+
+     
+	var fatalityData = []
+
+	for(var i = 0; i <= 7; i++){
+
+		fatalityData[i] = g_map.selectAll('circle').filter(function(d){return d.Fatality == i && !d3.select(this).classed('transparent')}).data().length 
+
+	}
+
+	fatalityData.unshift(g_map.selectAll('circle').filter(function(d){return d.Fatality == -9 && !d3.select(this).classed('transparent')}).data().length)
+
+	 x.domain(fatalityStringScale.domain());
+  	 y.domain([0, d3.max(fatalityData, function(d) { return d })]);
+
+
+  	console.log('fat',fatalityData)
+	var bars = infoDIV.select('#chartSVG').selectAll('rect').data(fatalityData);
+
+	bars.enter().append('rect').merge(bars).classed('fatalityBars',true)
+	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
+    .attr('y', function(d) { return y(d); })
+    .attr('width', x.bandwidth())
+    .attr('height', function(d) { return 100 - y(d); })
+    .style('fill', function(d,i){return fatalityScale(i)})
+
+}
+
+function drawHostilityChart(){
 
 }
