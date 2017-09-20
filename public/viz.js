@@ -149,7 +149,7 @@ var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',
 var infoDIV = d3.select('#board_info');
 var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
 .attr('width', '100%')
-.attr('transform','translate(12, 10)')
+.attr('transform','translate(0, -30)')
 
 var Drag_info = d3.select('.timeWrapper').append('div')
 .attr('id', 'drag_info')
@@ -421,8 +421,8 @@ d3.select('#time_legend').select('svg').append('g').selectAll('text')
 infoDIV.select('#info1').html('No selection');
 infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
 infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
-infoDIV.select('#info3').html('Fatality Distribution')
-infoDIV.select('#info3_cont').html('Hostility Distribution');
+infoDIV.select('#info3').html('')
+infoDIV.select('#info3_cont').html('');
 // infoDIV.select('#info4').html('Fatality Distribution')
 drawCharts();
 
@@ -1775,20 +1775,20 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(selection.data()[0].properties.CNTRY_NAME)
 		
-		infoDIV.select('#info2').html('<b>Total count of MID ('+ '+' +' war) involved:</b>'  )
+		infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war) involved:'  )
 		
 		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>')
 		
-		infoDIV.select('#info3').style('margin-left', '0px').style('margin-top', '0px').html('<b>Total count of War involved:</b>')
+		// infoDIV.select('#info3').style('margin-left', '0px').style('margin-top', '0px').html('<b>Total count of War involved:</b>')
 	
-		infoDIV.select('#info3_cont').style('margin-top', '0px').html('<b>' +fltr_circles_war.data().length+'</b>')
+		// infoDIV.select('#info3_cont').style('margin-top', '0px').html('<b>' +fltr_circles_war.data().length+'</b>')
 		
 
-		infoDIV.select('#info4').style('margin-left','5px').style('margin-top','7px').append('ul').style('margin-top','5px').classed('warList',true);
-		for (var i = 0; i <= warList.length-1; i++){
-			var j= i+1
-			infoDIV.select('ul').append('li').html('<sup>'+j+')'+'</sup> ' + warList[i]);
-		}
+		// infoDIV.select('#info4').style('margin-left','5px').style('margin-top','7px').append('ul').style('margin-top','5px').classed('warList',true);
+		// for (var i = 0; i <= warList.length-1; i++){
+		// 	var j= i+1
+		// 	infoDIV.select('ul').append('li').html('<sup>'+j+')'+'</sup> ' + warList[i]);
+		// }
 		
 
 		
@@ -1801,6 +1801,7 @@ function describe(selection){
 
 		infoDIV.select('#info1').style('width','57.5%');
 		infoDIV.select('#timeTeller').style('width','42.5%');
+		infoDIV.select('#info4').style('margin-top', '8px')
 
 		var warList_int = []
 
@@ -1815,29 +1816,56 @@ function describe(selection){
 		
 		infoDIV.select('#info2')
 		.style('width', '88%')
-		.style('height','70px')
-		.html('<b>Total count of MID ('
-			+ '+' +' war) both countries involved:</b></br></br> - Hostile relations:</br></br> - Allied relations: </br>')
+		// .style('height','70px')
+		.html('Total count of MID ('
+			+ '+' +' war) both countries involved:')
 			
 		infoDIV.select('#info2_cont')
 		.style('width', '12%')
-		.style('height','70px');
+		// .style('height','70px');
 
-		window.innerWidth>=1080?
-		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles_int.data().length + 
-			'</b>'+'</br></br><b>'+fltr_circles_int_hostile.data().length +
-			'</b></br></br><b>'+fltr_circles_int_allied.data().length+'</b>'  )
-		: infoDIV.select('#info2_cont').html( '<b>' + fltr_circles_int.data().length + 
-			'</b>'+'</br></br></br><b>'+fltr_circles_int_hostile.data().length +
-			'</b></br></br><b>'+fltr_circles_int_allied.data().length+'</b>'  )
+		// window.innerWidth>=1080?
+		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles_int.data().length +'</b>' )
 		  
 		
-		infoDIV.select('#info3').style('width','88%').style('margin-top', '19px').html('<b>Total count of War both countries involved:</b>' )
-		infoDIV.select('#info3_cont').style('width','12%').style('margin-top', '19px').html('<b>' +fltr_circles_int_war.data().length+'</b>' )
+		var hbarSVG = infoDIV.select('#info3').style('width','100%').append('svg').attr('transform','translate(0,-5)').attr('width', '100%')
+
+		hbarSVG.append('g').selectAll('rect')
+		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
+		.enter().append('rect').classed('ProportionBars', true)
+		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/4})
+		.attr('y', 0)
+		.attr('width', function(d){return d/fltr_circles_int.data().length * bm_width/2})
+		.attr('height', 15)
+		.style('fill',function(d,i){return i==0?'#ff6060':'#5b41f4'})
+		infoDIV.select('#info3_cont').style('width','12%')
+
+		hbarSVG.append('g').selectAll('text')
+		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
+		.enter().append('text').classed('countText',true)
+		.text(function(d){return d})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/4 - 17 : i*bm_width/2 + bm_width/4 + 7})
+		.attr('y', 12)
+		.style('font-size', 10.5)
+		.style('opacity', 0.5);
+
+		hbarSVG.append('g').selectAll('text')
+		.data(['Hostile', 'Allied'])
+		.enter().append('text').classed('countText', true)
+		.text(function(d){return d})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/4 - 75 : i*bm_width/2 + bm_width/4 + 40})
+		.attr('y', 12)
+		.style('font-size', 10.5)
+		.style('opacity', 0.5);
+		// .style('margin-top', '19px')
+		// .html('<b>' +fltr_circles_int_war.data().length+'</b>' )
 		
 
 		infoDIV.select('#info4').select('ul').remove();
-		infoDIV.select('#info4').style('margin-left','5px').style('margin-top','7px').append('ul').style('margin-top','5px').classed('warList',true);
+		infoDIV.select('#info4')
+		// .style('margin-left','5px')
+		// .style('margin-top','7px')
+		// .append('ul').style('margin-top','5px').classed('warList',true);
 		
 		for (var i = 0; i <= warList_int.length-1; i++){
 			var j= i+1
@@ -2134,12 +2162,16 @@ function drawCharts(){
   	 y.domain([0, d3.max(fatalityData, function(d) { return d })]);
 
 
-  	console.log('fat',fatalityData)
+  	infoDIV.select('#chartSVG').append('g').append('text').classed('graphTitle', true).
+  	text('Fatality Distribution').style('opacity', 0.5).style('font-size', 10)
+  	.attr('y', 10)
+  	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
+
 	var bars = infoDIV.select('#chartSVG').append('g').selectAll('rect').data(fatalityData);
 
 	bars.enter().append('rect').merge(bars).classed('fatalityBars',true)
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
-    .attr('y', function(d) { return y(d)+15; })
+    .attr('y', function(d) { return y(d)+40; })
     .attr('width', x.bandwidth())
     .attr('height', function(d) { return bm_height/5.2 - y(d); })
     .style('fill', '#749fc9')
@@ -2147,7 +2179,7 @@ function drawCharts(){
     var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(fatalityData);
     bars.enter().append('text').merge(bars_num)
     .attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]) + x.bandwidth()/2 })
-    .attr('y', function(d){return y(d)+10})
+    .attr('y', function(d){return y(d)+35})
     .text(function(d){return d})
     .style('font-size', '9.5px')
     .style('text-anchor', 'middle')
@@ -2158,7 +2190,7 @@ function drawCharts(){
 			.data([-9,0,1,2,3,4,5,6])
 			.enter().append('rect')
 			.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i])})
-			.attr('y', bm_height/5.2 +20)
+			.attr('y', bm_height/5.2 +45)
 			.attr('width', x.bandwidth())
 			.attr('height', 12)
 			.style('fill', function(d){return fatalityScale(d)})
@@ -2169,7 +2201,7 @@ function drawCharts(){
 
 
  //Hostility Chart
-	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width+30]).padding(0.05),
+	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width*1 + 30]).padding(0.05),
     	y2 = d3.scaleLinear().rangeRound([bm_height/5.2, 0]);
 
      
@@ -2181,16 +2213,19 @@ function drawCharts(){
 
 	}
 
-	
-
 	 x2.domain([2,3,4,5]);
   	 y2.domain([0, d3.max(hostilityData, function(d) { return d })]);
 
+	infoDIV.select('#chartSVG').append('g').append('text').classed('graphTitle', true).
+  	text('Hostility Distribution').style('opacity', 0.5).style('font-size', 10.5)
+  	.attr('y', 10)
+  	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
+	 
 	var bars = infoDIV.select('#chartSVG').append('g').selectAll('rect').data(hostilityData);
 
 	bars.enter().append('rect').merge(bars).classed('hostilityBars',true)
 	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
-    .attr('y', function(d) { return y2(d)+15; })
+    .attr('y', function(d) { return y2(d)+40; })
     .attr('width', x2.bandwidth())
     .attr('height', function(d) { return bm_height/5.2 - y2(d); })
     .style('fill', '#749fc9')
@@ -2198,7 +2233,7 @@ function drawCharts(){
     var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(hostilityData);
     bars.enter().append('text').merge(bars_num)
     .attr('x', function(d,i) { return x2(x2.domain()[i]) + x2.bandwidth()/2 })
-    .attr('y', function(d){return y2(d)+10})
+    .attr('y', function(d){return y2(d)+35})
     .text(function(d){return d})
     .style('font-size', '9.5px')
     .style('text-anchor', 'middle')
@@ -2208,7 +2243,7 @@ function drawCharts(){
 	    	.selectAll('rect').data([2,3,4,5])
 			.enter().append('rect')
 			.attr('x', function(d,i){return x2(x2.domain()[i])})
-			.attr('y', bm_height/5.2 +20)
+			.attr('y', bm_height/5.2 +45)
 			.attr('height', 12)
 			.attr('width',x2.bandwidth())
 			.style('fill', '#fff').style('opacity', 0.5)
