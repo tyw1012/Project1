@@ -148,6 +148,8 @@ var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',
 
 var infoDIV = d3.select('#board_info');
 var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
+.attr('width', '100%')
+.attr('transform','translate(12, 10)')
 
 var Drag_info = d3.select('.timeWrapper').append('div')
 .attr('id', 'drag_info')
@@ -168,8 +170,8 @@ var newScale, map_newScale, initial_features,
 
 var hostileStringScale = d3.scaleOrdinal().domain([2,3,4,5]).range(['T','D','U','W'])
 
-var fatalityScale = d3.scaleLinear().domain([-0,6]).interpolate(d3.interpolateHcl)
-					.range([d3.rgb('#4c0000'), d3.rgb('#ed0202')])
+var fatalityScale = d3.scaleLinear().domain([-9,0,6]).interpolate(d3.interpolateHcl)
+					.range([d3.rgb('#000000'),d3.rgb('#4c0000'), d3.rgb('#ed0202')])
 
 var fatalityStringScale = d3.scaleOrdinal().domain([-9,0,1,2,3,4,5,6]).range(['Unknown','None','1-25 deaths','26-100 deaths','101-250 deaths','251-500 deaths','501-999 deaths','1000 deaths or more'])
 
@@ -347,9 +349,9 @@ drawLegends();
 d3.select('#time_legend').append('svg')
 .attr('width','100%').attr('height', '100%').call(fatalityTip)
 .selectAll('rect')
-.data([0,1,2,3,4,5,6])
+.data([-9,0,1,2,3,4,5,6])
 .enter().append('rect')
-		.attr('x', function(d,i){return i*16.5 + parseInt(bm_width)-70})
+		.attr('x', function(d,i){return i*16.5 + parseInt(bm_width)-86.5})
 		.attr('y', 8)
 		.attr('width',16)
 		.attr('height', 16)
@@ -359,16 +361,6 @@ d3.select('#time_legend').append('svg')
 		.on('mouseout', fatalityTip.hide)
 		.on('click', filterByFatality);
 
-d3.select('#time_legend').select('svg').append('rect')
-	.attr('x', parseInt(bm_width)-86.5)
-	.attr('y',8).attr('width',16)
-	.attr('height', 16)
-	.style('fill','black')
-	.style('cursor','pointer')
-	.data([-9])
-	.on('mouseover', fatalityTip.show)
-	.on('mouseout', fatalityTip.hide)
-	.on('click', filterByFatality);
 
 d3.select('#time_legend').select('svg').append('text').attr('id','fatality_level')
 	.text('Fatality level')
@@ -429,10 +421,10 @@ d3.select('#time_legend').select('svg').append('g').selectAll('text')
 infoDIV.select('#info1').html('No selection');
 infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
 infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
-infoDIV.select('#info3').html('Total count of War: ')
-infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
-
-drawFatalityChart();
+infoDIV.select('#info3').html('Fatality Distribution')
+infoDIV.select('#info3_cont').html('Hostility Distribution');
+// infoDIV.select('#info4').html('Fatality Distribution')
+drawCharts();
 
 }
 
@@ -1637,7 +1629,7 @@ function initialize(){
 	infoDIV.select('#info3').html('Total count of War: ')
 	infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
 	
-
+	drawCharts();
 }
 
 function drawLegends(d){
@@ -1945,7 +1937,7 @@ function describe(selection){
 		}
 	}
 
-	drawFatalityChart();
+	drawCharts();
 
 }
 
@@ -2116,18 +2108,21 @@ function filterByHostility(d){
 
 }
 
-function drawFatalityChart(){
+function drawCharts(){
 
-	 infoDIV.select('#chartSVG').selectAll('rect').remove();
+//FatalityChart
+
+	 infoDIV.select('#chartSVG').selectAll('g').remove();
+	 // infoDIV.select('#chartSVG').selectAll('text').remove();
 	 console.log('chart Drawn')
 
-	var x = d3.scaleBand().rangeRound([0, bm_width/2]).padding(0.1),
-    	y = d3.scaleLinear().rangeRound([100, 0]);
+	var x = d3.scaleBand().rangeRound([0, bm_width/2]).padding(0.05),
+    	y = d3.scaleLinear().rangeRound([bm_height/5.2, 0]);
 
      
 	var fatalityData = []
 
-	for(var i = 0; i <= 7; i++){
+	for(var i = 0; i <= 6; i++){
 
 		fatalityData[i] = g_map.selectAll('circle').filter(function(d){return d.Fatality == i && !d3.select(this).classed('transparent')}).data().length 
 
@@ -2140,17 +2135,88 @@ function drawFatalityChart(){
 
 
   	console.log('fat',fatalityData)
-	var bars = infoDIV.select('#chartSVG').selectAll('rect').data(fatalityData);
+	var bars = infoDIV.select('#chartSVG').append('g').selectAll('rect').data(fatalityData);
 
 	bars.enter().append('rect').merge(bars).classed('fatalityBars',true)
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
-    .attr('y', function(d) { return y(d); })
+    .attr('y', function(d) { return y(d)+15; })
     .attr('width', x.bandwidth())
-    .attr('height', function(d) { return 100 - y(d); })
-    .style('fill', function(d,i){return fatalityScale(i)})
+    .attr('height', function(d) { return bm_height/5.2 - y(d); })
+    .style('fill', '#749fc9')
+
+    var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(fatalityData);
+    bars.enter().append('text').merge(bars_num)
+    .attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]) + x.bandwidth()/2 })
+    .attr('y', function(d){return y(d)+10})
+    .text(function(d){return d})
+    .style('font-size', '9.5px')
+    .style('text-anchor', 'middle')
+
+
+    infoDIV.select('#chartSVG').append('g')
+	    	.selectAll('rect')
+			.data([-9,0,1,2,3,4,5,6])
+			.enter().append('rect')
+			.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i])})
+			.attr('y', bm_height/5.2 +20)
+			.attr('width', x.bandwidth())
+			.attr('height', 12)
+			.style('fill', function(d){return fatalityScale(d)})
+			.style('cursor','pointer')
+			.on('mouseover', fatalityTip.show)
+			.on('mouseout', fatalityTip.hide)
+			.on('click', filterByFatality);
+
+
+ //Hostility Chart
+	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width+30]).padding(0.05),
+    	y2 = d3.scaleLinear().rangeRound([bm_height/5.2, 0]);
+
+     
+	var hostilityData = []
+
+	for(var i = 0; i <= 3; i++){
+
+		hostilityData[i] = g_map.selectAll('circle').filter(function(d){return d.HostLev == i+2 && !d3.select(this).classed('transparent')}).data().length 
+
+	}
+
+	
+
+	 x2.domain([2,3,4,5]);
+  	 y2.domain([0, d3.max(hostilityData, function(d) { return d })]);
+
+	var bars = infoDIV.select('#chartSVG').append('g').selectAll('rect').data(hostilityData);
+
+	bars.enter().append('rect').merge(bars).classed('hostilityBars',true)
+	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
+    .attr('y', function(d) { return y2(d)+15; })
+    .attr('width', x2.bandwidth())
+    .attr('height', function(d) { return bm_height/5.2 - y2(d); })
+    .style('fill', '#749fc9')
+
+    var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(hostilityData);
+    bars.enter().append('text').merge(bars_num)
+    .attr('x', function(d,i) { return x2(x2.domain()[i]) + x2.bandwidth()/2 })
+    .attr('y', function(d){return y2(d)+10})
+    .text(function(d){return d})
+    .style('font-size', '9.5px')
+    .style('text-anchor', 'middle')
+
+
+    infoDIV.select('#chartSVG').append('g')
+	    	.selectAll('rect').data([2,3,4,5])
+			.enter().append('rect')
+			.attr('x', function(d,i){return x2(x2.domain()[i])})
+			.attr('y', bm_height/5.2 +20)
+			.attr('height', 12)
+			.attr('width',x2.bandwidth())
+			.style('fill', '#fff').style('opacity', 0.5)
+			.style('cursor','pointer')
+			.style('stroke-width', 1)
+			.style('stroke', 'black')
+			.on('click', filterByHostility)
+		
 
 }
 
-function drawHostilityChart(){
-
-}

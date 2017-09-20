@@ -212,17 +212,23 @@ body{
 }
 
 #info3{
-
+	margin-left: 16px;
+	width: 50%; 
 	height:20px; 
-	width: 83%; 
+	opacity:0.4;
+	font-weight: bold;
 	float:left;
+	margin-top: 10px;
 
 }
 #info3_cont{
 
-	height:20px; 
-	width: 17%;
+	width: 35%;
+	height:20px; 	
+	opacity:0.4;
+	font-weight: bold;
 	 float:left;
+	 margin-top: 10px
 
 }
 #info4{
@@ -230,6 +236,7 @@ body{
 	height:25px;
 	width: 100%; 
 	float:left;
+	margin-top: 9px;
 
 }
 #info5{
