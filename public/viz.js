@@ -192,7 +192,7 @@ d3.select('#board_header').append('div')
 .style('position','absolute')
 .style('right', '20px')
 .style('margin-top', '3px')
-.html(' About Dataset');
+// .html(' About Dataset');
 
 var circleTip = d3.tip()
 				.attr('class', 'd3-tip')
@@ -230,6 +230,26 @@ g_map.call(countryTip);
 boardSVG_circle.call(circleTip_drawn);
 legends.call(typologyTip);
 
+var options = {
+	data: function(){
+		var countryList = [];
+		d3.csv("./public/COW_country_codes.csv", 
+		function(countries){
+				for(var i = 0; i <= countries.length-1; i++){
+				countryList.push(countries[i].StateNme)
+			}
+		})
+	return countryList
+	}(),
+
+	list: {
+		match: {
+			enabled: true
+		}
+	}
+};
+
+$("#search").easyAutocomplete(options);
 
 d3.queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -425,6 +445,8 @@ infoDIV.select('#info3').html('')
 infoDIV.select('#info3_cont').html('');
 // infoDIV.select('#info4').html('Fatality Distribution')
 drawCharts();
+
+d3.select('.easy-autocomplete-container').selectAll('li').on('click', countrySearch)
 
 }
 
@@ -1836,7 +1858,7 @@ function describe(selection){
 		hbarSVG.append('g').selectAll('rect')
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
 		.enter().append('rect').classed('ProportionBars', true)
-		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/3.3})
+		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/3})
 		.attr('y', 0)
 		.attr('width', function(d){return d/fltr_circles_int.data().length * bm_width/2})
 		.attr('height', 15)
@@ -1850,7 +1872,7 @@ function describe(selection){
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
 		.enter().append('text').classed('countText',true)
 		.text(function(d){return d})
-		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 15 : i*bm_width/2 + bm_width/3.3 + 4})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3 - 15 : i*bm_width/2 + bm_width/3 + 4})
 		.attr('y', 12)
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
@@ -1859,7 +1881,7 @@ function describe(selection){
 		.data(['Hostile', 'Allied'])
 		.enter().append('text').classed('countText', true)
 		.text(function(d){return d})
-		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 65 : i*bm_width/2 + bm_width/3.3 + 30})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3 - 60 : i*bm_width/2 + bm_width/3 + 30})
 		.attr('y', 12)
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
@@ -2150,7 +2172,7 @@ function drawCharts(){
 	 // infoDIV.select('#chartSVG').selectAll('text').remove();
 	 console.log('chart Drawn')
 
-	var x = d3.scaleBand().rangeRound([0, bm_width/2]).padding(0.05),
+	var x = d3.scaleBand().rangeRound([0, bm_width/2 + 10]).padding(0.07),
     	y = d3.scaleLinear().rangeRound([bm_height/3, 0]);
 
      
@@ -2179,16 +2201,16 @@ function drawCharts(){
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
     .attr('y', function(d) { return y(d)+40; })
     .attr('width', x.bandwidth())
-    .attr('height', function(d) { return bm_height/3 - y(d); })
+    .attr('height', function(d) { return +bm_height/3 - y(+d); })
     .style('fill', '#749fc9')
 
     var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(fatalityData);
     bars.enter().append('text').merge(bars_num)
+    .attr('class', 'bars_num')
     .attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]) + x.bandwidth()/2 })
     .attr('y', function(d){return y(d)+35})
     .text(function(d){return d})
-    .style('font-size', '9.5px')
-    .style('text-anchor', 'middle')
+   
 
 
     infoDIV.select('#chartSVG').append('g')
@@ -2207,7 +2229,7 @@ function drawCharts(){
 
 
  //Hostility Chart
-	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width*1 + 30]).padding(0.05),
+	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width*1 + 30]).padding(0.07),
     	y2 = d3.scaleLinear().rangeRound([bm_height/3, 0]);
 
      
@@ -2238,12 +2260,11 @@ function drawCharts(){
 
     var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(hostilityData);
     bars.enter().append('text').merge(bars_num)
+    .attr('class', 'bars_num')
     .attr('x', function(d,i) { return x2(x2.domain()[i]) + x2.bandwidth()/2 })
     .attr('y', function(d){return y2(d)+35})
     .text(function(d){return d})
-    .style('font-size', '9.5px')
-    .style('text-anchor', 'middle')
-
+   
 
     infoDIV.select('#chartSVG').append('g')
 	    	.selectAll('rect').data([2,3,4,5])
@@ -2261,3 +2282,208 @@ function drawCharts(){
 
 }
 
+function countrySearch(){
+
+	var country = d3.select('li.selected').select(".eac-item").property('innerText');
+	console.log(country)
+
+	var searchedMap= g_map.selectAll('path.map').filter(function(d){return d.properties.CNTRY_NAME == country.toString()})
+	
+	console.log(searchedMap)
+	console.log(searchedMap.data()[0])
+
+	
+
+fltr_circles = g_map.selectAll('.dispute,.war').filter(function (d_){
+	return include(d_.countries_A, searchedMap.data()[0].properties.COWCODE) ||
+	  	   include(d_.countries_B, searchedMap.data()[0].properties.COWCODE)});
+
+ fltr_circles_war = g_map.selectAll('.war').filter(function (d_){
+	return include(d_.countries_A, searchedMap.data()[0].properties.COWCODE) ||
+	  	   include(d_.countries_B, searchedMap.data()[0].properties.COWCODE)});
+
+infoDIV.select('#timeTeller').html('');
+brushableG.selectAll('.selection,.handle').classed('transparent', true);
+
+
+var allCircles, allRects;
+	
+			if (circle_clicked ){
+				
+				g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).
+				classed('mapClicked', false).classed('mapHighlighted', false);
+
+				g_map.select('.circleClicked').transition().attr('r', dflt_radius)
+
+				
+				boardSVG_circle.select('.circleClicked').transition().attr('r', 12);
+				initialize();
+				map_clicked = 0;
+				circle_clicked = false;
+
+			}
+				
+			else { 
+
+				if (map_clicked == 0){
+
+					
+				 	storedSelection1 = searchedMap.data()[0].properties
+				 	
+					g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').classed('transparent',true).classed('opaque', false).classed('circleFiltered',false).attr('r', dflt_radius);
+
+					searchedMap.attr('style', null).attr('class', null).classed('map mapClicked', true);
+				
+					fltr_circles.attr('style',null)
+					.attr('class', function(){return searchedMap.classed('war')? 'war circleHighlighted_war' : 'dispute circleHighlighted'})
+					.classed('opaque', true).classed('transparent',false)
+					.transition().attr('r',3.5);
+					
+
+					var fltr_pool_hostile = [];
+					var fltr_pool_allied = [];
+
+					for (var i = 0; i <= fltr_circles.data().length-1; i++){
+
+
+						for (var j = 0; j <= fltr_circles.data()[i].countries_A.length-1; j++){
+
+							if(include(fltr_circles.data()[i].countries_A, searchedMap.data()[0].properties.COWCODE) && fltr_circles.data()[i].countries_A[j] !== searchedMap.data()[0].properties.COWCODE.toString()){
+								
+								fltr_pool_allied.push(fltr_circles.data()[i].countries_A[j])
+						
+							}
+
+							if(!include(fltr_circles.data()[i].countries_A, searchedMap.data()[0].properties.COWCODE)){
+
+								fltr_pool_hostile.push(fltr_circles.data()[i].countries_A[j])
+							}
+
+
+						}
+
+						for (var j = 0; j <= fltr_circles.data()[i].countries_B.length-1; j++){
+
+							if(include(fltr_circles.data()[i].countries_B, searchedMap.data()[0].properties.COWCODE) && fltr_circles.data()[i].countries_B[j] !== searchedMap.data()[0].properties.COWCODE.toString()){
+								
+								fltr_pool_allied.push(fltr_circles.data()[i].countries_B[j])
+						
+							}
+
+							if(!include(fltr_circles.data()[i].countries_B, searchedMap.data()[0].properties.COWCODE)){
+
+								fltr_pool_hostile.push(fltr_circles.data()[i].countries_B[j])
+							}	
+
+						}
+
+
+					}
+
+					var counts_hostile = {}
+
+					fltr_pool_hostile.forEach(function(x) { 
+											counts_hostile[x] = (counts_hostile[x] || 0)+1; });
+
+					
+					var filtered_map = g_map.selectAll('path.map').filter(function(d){return counts_hostile.hasOwnProperty(d.properties.COWCODE) }).classed('mapFiltered',true);
+
+					filtered_map.style('fill', function(d){return freqColorScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
+								.style('stroke', function(d){return freqStrokeScale(frequencyScale(counts_hostile[d.properties.COWCODE]))})
+								.attr('vector-effect', 'non-scaling-stroke')
+					
+					map_clicked = 1
+					
+					describe(searchedMap);
+					drawCircle();
+					drawLegends(searchedMap.data()[0]);
+						
+				}
+
+				else{
+
+					if(map_clicked == 1){
+
+						if(!searchedMap.classed('mapClicked'))
+						{
+							storedSelection2 = searchedMap.data()[0].properties.COWCODE
+							g_map.selectAll('.mapFiltered').style('fill',null).style('stroke',null).classed('map mapNotClicked',true);
+
+							searchedMap.attr('style', null).attr('class', null).classed('map mapClicked', true);
+							
+							fltr_circles_int = fltr_circles
+								.filter(function()
+									{return searchedMap.classed('circleHighlighted')||searchedMap.classed('circleHighlighted_war')}
+									)
+								.attr('class', function(d){return d.war ==0?'dispute intersected' : 'war intersected'})
+
+							fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
+								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
+									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
+									}).classed('allied', true);
+
+						
+							fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
+								return !(
+									   (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
+									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
+									   )
+									}).classed('hostile', true);
+
+							fltr_circles_int_war = fltr_circles
+								.filter(function()
+									{return searchedMap.classed('war intersected')}
+									);
+
+							
+
+						
+
+							fltr_circles_int.transition().attr('r',2).transition().attr('r',4);
+
+
+							d3.selectAll('.circleHighlighted,.circleHighlighted_war').attr('style',null).attr('class', function(d){return d.war==0? 'dispute circleNotClicked transparent':'war circleNotClicked transparent' }).attr('r',dflt_radius);	
+							
+							map_clicked = 2;
+
+							describe(searchedMap);
+							drawCircle();
+							drawLegends(searchedMap.data()[0]);
+							
+
+						}
+
+						else{
+
+							g_map.selectAll('.mapFiltered').style('fill',null).style('stroke',null).classed('map mapNotClicked',true);
+
+							searchedMap.attr('style', null).classed('mapNotClicked', true).classed('mapClicked',false);
+
+							
+							map_clicked = 0;
+
+							drawLegends(searchedMap.data()[0]);
+							initialize();
+												
+						}
+					}
+				    else{
+
+
+				    	g_map.selectAll('path.map').attr('style', null).classed('mapNotClicked', true).classed('mapClicked', false).classed('mapHighlighted', false);
+						
+						initialize();
+
+						legends.selectAll('.legend_hostile').remove();
+						legends.selectAll('.legend_allied').remove();
+											
+						circle_clicked = false;
+						map_clicked = 0;
+						drawLegends(searchedMap.data()[0]);
+
+				    }		
+				}		
+			}
+
+
+}
