@@ -148,8 +148,8 @@ var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',
 
 var infoDIV = d3.select('#board_info');
 var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
-.attr('width', '100%')
-.attr('transform','translate(0, -30)')
+.attr('width', '100%').attr('height', 250)
+// .attr('transform','translate(0, -40)')
 
 var Drag_info = d3.select('.timeWrapper').append('div')
 .attr('id', 'drag_info')
@@ -364,7 +364,7 @@ d3.select('#time_legend').append('svg')
 
 d3.select('#time_legend').select('svg').append('text').attr('id','fatality_level')
 	.text('Fatality level')
-	.attr('x', parseInt(bm_width)-180)
+	.attr('x', parseInt(bm_width)-172)
 	.attr('y', 20)
 	
 d3.select('#time_legend').select('svg').append('text')
@@ -392,7 +392,7 @@ d3.select('#time_legend').select('svg').append('g').selectAll('rect').data([2,3,
 
 d3.select('#time_legend').select('svg').append('text').attr('id','hostility_level')
 	.text('Hostility level')
-	.attr('x', parseInt(bm_width)-186)
+	.attr('x', parseInt(bm_width)-176)
 	.attr('y', 45)
 
 d3.select('#time_legend').select('svg').append('text')
@@ -1597,8 +1597,8 @@ function initialize(){
 	infoDIV.select('#info2_cont').style('height','20px');
 	infoDIV.select('#info1').style('width','57.5%');
 	infoDIV.select('#timeTeller').style('width','42.5%');
-	infoDIV.select('#info3').style('margin-top', 0)
-	infoDIV.select('#info3_cont').style('margin-top', 0)
+	// infoDIV.select('#info3').style('margin-top', 0)
+	// infoDIV.select('#info3_cont').style('margin-top', 0)
 	infoDIV.select('#info2').style('width',null)
 	infoDIV.select('#info2_cont').style('width',null)
 	infoDIV.select('#info3').style('width',null)
@@ -1626,9 +1626,11 @@ function initialize(){
 	infoDIV.select('#info1').html('No selection');
 	infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
 	infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
-	infoDIV.select('#info3').html('Total count of War: ')
-	infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
+	// infoDIV.select('#info3').html('Total count of War: ')
+	// infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
 	
+	var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
+	.attr('width', '100%').attr('height', 250)
 	drawCharts();
 }
 
@@ -1830,21 +1832,25 @@ function describe(selection){
 		
 		var hbarSVG = infoDIV.select('#info3').style('width','100%').append('svg').attr('transform','translate(0,-5)').attr('width', '100%')
 
+		// infoDIV.select('#info3_cont').style('width', 0)
 		hbarSVG.append('g').selectAll('rect')
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
 		.enter().append('rect').classed('ProportionBars', true)
-		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/4})
+		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/3.3})
 		.attr('y', 0)
 		.attr('width', function(d){return d/fltr_circles_int.data().length * bm_width/2})
 		.attr('height', 15)
 		.style('fill',function(d,i){return i==0?'#ff6060':'#5b41f4'})
-		infoDIV.select('#info3_cont').style('width','12%')
+
+
+		infoDIV.select('#info3_cont').style('height','20px')
+
 
 		hbarSVG.append('g').selectAll('text')
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
 		.enter().append('text').classed('countText',true)
 		.text(function(d){return d})
-		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/4 - 17 : i*bm_width/2 + bm_width/4 + 7})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 17 : i*bm_width/2 + bm_width/3.3 + 7})
 		.attr('y', 12)
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
@@ -1853,7 +1859,7 @@ function describe(selection){
 		.data(['Hostile', 'Allied'])
 		.enter().append('text').classed('countText', true)
 		.text(function(d){return d})
-		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/4 - 75 : i*bm_width/2 + bm_width/4 + 40})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 75 : i*bm_width/2 + bm_width/3.3 + 40})
 		.attr('y', 12)
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
@@ -2145,7 +2151,7 @@ function drawCharts(){
 	 console.log('chart Drawn')
 
 	var x = d3.scaleBand().rangeRound([0, bm_width/2]).padding(0.05),
-    	y = d3.scaleLinear().rangeRound([bm_height/5.2, 0]);
+    	y = d3.scaleLinear().rangeRound([bm_height/3, 0]);
 
      
 	var fatalityData = []
@@ -2163,7 +2169,7 @@ function drawCharts(){
 
 
   	infoDIV.select('#chartSVG').append('g').append('text').classed('graphTitle', true).
-  	text('Fatality Distribution').style('opacity', 0.5).style('font-size', 10)
+  	text('Fatality Distribution').style('opacity', 0.5).style('font-size', 10.5)
   	.attr('y', 10)
   	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
 
@@ -2173,7 +2179,7 @@ function drawCharts(){
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
     .attr('y', function(d) { return y(d)+40; })
     .attr('width', x.bandwidth())
-    .attr('height', function(d) { return bm_height/5.2 - y(d); })
+    .attr('height', function(d) { return bm_height/3 - y(d); })
     .style('fill', '#749fc9')
 
     var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(fatalityData);
@@ -2190,7 +2196,7 @@ function drawCharts(){
 			.data([-9,0,1,2,3,4,5,6])
 			.enter().append('rect')
 			.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i])})
-			.attr('y', bm_height/5.2 +45)
+			.attr('y', bm_height/3 +45)
 			.attr('width', x.bandwidth())
 			.attr('height', 12)
 			.style('fill', function(d){return fatalityScale(d)})
@@ -2202,7 +2208,7 @@ function drawCharts(){
 
  //Hostility Chart
 	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width*1 + 30]).padding(0.05),
-    	y2 = d3.scaleLinear().rangeRound([bm_height/5.2, 0]);
+    	y2 = d3.scaleLinear().rangeRound([bm_height/3, 0]);
 
      
 	var hostilityData = []
@@ -2227,7 +2233,7 @@ function drawCharts(){
 	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
     .attr('y', function(d) { return y2(d)+40; })
     .attr('width', x2.bandwidth())
-    .attr('height', function(d) { return bm_height/5.2 - y2(d); })
+    .attr('height', function(d) { return bm_height/3 - y2(d); })
     .style('fill', '#749fc9')
 
     var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(hostilityData);
@@ -2243,7 +2249,7 @@ function drawCharts(){
 	    	.selectAll('rect').data([2,3,4,5])
 			.enter().append('rect')
 			.attr('x', function(d,i){return x2(x2.domain()[i])})
-			.attr('y', bm_height/5.2 +45)
+			.attr('y', bm_height/3 +45)
 			.attr('height', 12)
 			.attr('width',x2.bandwidth())
 			.style('fill', '#fff').style('opacity', 0.5)
