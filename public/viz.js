@@ -148,7 +148,7 @@ var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',
 
 var infoDIV = d3.select('#board_info');
 var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
-.attr('width', '100%').attr('height', 250)
+// .attr('width', '100%').attr('height', 250)
 // .attr('transform','translate(0, -40)')
 
 var Drag_info = d3.select('.timeWrapper').append('div')
@@ -1803,7 +1803,7 @@ function describe(selection){
 
 		infoDIV.select('#info1').style('width','57.5%');
 		infoDIV.select('#timeTeller').style('width','42.5%');
-		infoDIV.select('#info4').style('margin-top', '8px')
+		// infoDIV.select('#info4').style('margin-top', '8px')
 
 		var warList_int = []
 
@@ -1850,7 +1850,7 @@ function describe(selection){
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
 		.enter().append('text').classed('countText',true)
 		.text(function(d){return d})
-		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 17 : i*bm_width/2 + bm_width/3.3 + 7})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 15 : i*bm_width/2 + bm_width/3.3 + 4})
 		.attr('y', 12)
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
@@ -1859,7 +1859,7 @@ function describe(selection){
 		.data(['Hostile', 'Allied'])
 		.enter().append('text').classed('countText', true)
 		.text(function(d){return d})
-		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 75 : i*bm_width/2 + bm_width/3.3 + 40})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3.3 - 65 : i*bm_width/2 + bm_width/3.3 + 30})
 		.attr('y', 12)
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
