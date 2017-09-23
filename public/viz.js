@@ -155,7 +155,7 @@ var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
 var Drag_info = d3.select('.timeWrapper').append('div')
 .attr('id', 'drag_info')
 .append('span').style('margin-right', '15px').style('margin-top', '15px')
-.append('img').attr('src', './public/drag_icon.png').attr('height', '40px').attr('width', '50px')
+.append('img').attr('src', './public/drag_icon.png').attr('height', '30px').attr('width', '40px')
 
 var Zoom_info = d3.select('#board_axis').append('div')
 .attr('id','zoom_info')
@@ -1131,18 +1131,18 @@ function drawCircle(){
 
 		var data_highlighted = selectedCircles.data().sort(sortByDateAscending);
 		
-		setTimeout(function(){
+		// setTimeout(function(){
 
-			var cyData = [];
-		 boardSVG_circle.selectAll('.circleDrawn_war')
-		 .each(function(d,i){ cyData.push(d3.select(this).attr('cy'))
+		// 	var cyData = [];
+		//  boardSVG_circle.selectAll('.circleDrawn_war')
+		//  .each(function(d,i){ cyData.push(d3.select(this).attr('cy'))
 
-			})
+		// 	})
 		
-		boardSVG_circle.selectAll('text').data(cyData).enter().append('text').text(function(d,i){ var j = i+1
-			return j+')' }).attr('y', function(d){return d-8}).attr('x',5).style('opacity', 0.8);
+		// boardSVG_circle.selectAll('text').data(cyData).enter().append('text').text(function(d,i){ var j = i+1
+		// 	return j+')' }).attr('y', function(d){return d-8}).attr('x',5).style('opacity', 0.8);
 
-		}, 1200)
+		// }, 1200)
 		
 
 		boardSVG_circle.attr('height', function(d){return selectedCircles.data().length*40.2+45});
@@ -1228,19 +1228,19 @@ function drawCircle(){
 
 		data_intersected = selectedCircles_merged.sort(sortByDateAscending);
 
-		setTimeout(function(){
+		// setTimeout(function(){
 
-		boardSVG_circle.selectAll('text').remove();
-			var cyData = [];
-		 boardSVG_circle.selectAll('.circleDrawn_war')
-		 .each(function(d,i){ cyData.push(d3.select(this).attr('cy'))
+		// boardSVG_circle.selectAll('text').remove();
+		// 	var cyData = [];
+		//  boardSVG_circle.selectAll('.circleDrawn_war')
+		//  .each(function(d,i){ cyData.push(d3.select(this).attr('cy'))
 
-			})
+		// 	})
 		
-		boardSVG_circle.selectAll('text').data(cyData).enter().append('text').text(function(d,i){ var j = i+1
-			return j+')' }).attr('y', function(d){return d-8}).attr('x',5).style('opacity', 0.8);
+		// boardSVG_circle.selectAll('text').data(cyData).enter().append('text').text(function(d,i){ var j = i+1
+		// 	return j+')' }).attr('y', function(d){return d-8}).attr('x',5).style('opacity', 0.8);
 
-		}, 1200)	
+		// }, 1200)	
 
 		
 		boardSVG_circle.attr('height', function(d){return data_intersected.length*40.2+45});
@@ -1475,15 +1475,39 @@ function brushed() {
 
   .classed('circleFiltered', false).classed('transparent', true).transition().attr('r', int_radius);
 
-  var filter_intersected = g_map.selectAll('.circleFiltered').data().length;
+  var filter_intersected = parseInt(g_map.selectAll('.circleFiltered').data().length);
 
-  var filter_intersected_hostile = g_map.selectAll('.circleFiltered').filter(function(){return d3.select(this).classed('hostile')}).data().length;
+  var filter_intersected_hostile = parseInt(g_map.selectAll('.circleFiltered').filter(function(){return d3.select(this).classed('hostile')}).data().length);
 
-  var filter_intersected_allied = g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('allied')}).data().length;
+  var filter_intersected_allied = parseInt(g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('allied')}).data().length);
 
-  var filter_intersected_war = g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('war')}).data().length;
+  var filter_intersected_war = parseInt(g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('war')}).data().length);
 
   infoDIV.select('#info2_cont').html( '<b>' + filter_intersected)
+
+  var hbars = infoDIV.selectAll('.ProportionBars').data([ filter_intersected_hostile,filter_intersected_allied])
+  	
+  hbars
+  	.attr('x', bm_width/2* filter_intersected_hostile/filter_intersected + bm_width/3)
+	.attr('y', 0)
+	.attr('width', 0)
+	.style('fill',function(d,i){return i==0?'#ff6060':'#5b41f4'})
+
+	.transition()
+	.duration(800)
+	.attr('x', function(d,i){return i*bm_width/2* filter_intersected_hostile/filter_intersected + bm_width/3})
+	.attr('width', function(d){return d/filter_intersected * bm_width/2})
+	.attr('height', 15)
+
+infoDIV.selectAll('.countText')
+		.data([filter_intersected_hostile,filter_intersected_allied])
+		.classed('countText',true)
+		.text(function(d){return d})
+		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3 - 15 : i*bm_width/2 + bm_width/3 + 4})
+		.attr('y', 12)
+		.style('font-size', 10.5)
+		.style('opacity', 0.5);
+
   // infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>')
   
 
@@ -1881,7 +1905,7 @@ function describe(selection){
 		infoDIV.select('#info3_cont').style('height','20px')
 
 
-		hbarSVG.append('g').selectAll('text')
+		hbarSVG.selectAll('.countText')
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
 		.enter().append('text').classed('countText',true)
 		.text(function(d){return d})
@@ -1890,9 +1914,9 @@ function describe(selection){
 		.style('font-size', 10.5)
 		.style('opacity', 0.5);
 
-		hbarSVG.append('g').selectAll('text')
+		hbarSVG.selectAll('._countText')
 		.data(['Hostile', 'Allied'])
-		.enter().append('text').classed('countText', true)
+		.enter().append('text').classed('_countText', true)
 		.text(function(d){return d})
 		.attr('x', function(d,i){return i==0? i*bm_width/2 + bm_width/3 - 60 : i*bm_width/2 + bm_width/3 + 30})
 		.attr('y', 12)
@@ -1908,10 +1932,10 @@ function describe(selection){
 		// .style('margin-top','7px')
 		// .append('ul').style('margin-top','5px').classed('warList',true);
 		
-		for (var i = 0; i <= warList_int.length-1; i++){
-			var j= i+1
-			infoDIV.select('ul').append('li').html('<sup>'+j+')'+'</sup> ' + warList_int[i]);
-		}	
+		// for (var i = 0; i <= warList_int.length-1; i++){
+		// 	var j= i+1
+		// 	infoDIV.select('ul').append('li').html('<sup>'+j+')'+'</sup> ' + warList_int[i]);
+		// }	
 
 	}
 
