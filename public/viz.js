@@ -85,18 +85,18 @@ var brush = d3.brushX()
 
 
 var boardAxisSVG = d3.select('#board_axis').append('svg')
-	.attr('transform','translate(60, 0)')
+	.attr('transform','translate(60, -15)')
 	.attr('width', '100%')
 	.attr('height', 65);
 
 var boardBrushSVG = d3.select('#board_axis').append('svg')
-	.attr('transform','translate(60, -2)')
+	.attr('transform','translate(60, -13)')
 	.attr('width', '100%')
 	.attr('height', 712)
 	.style('pointer-events', 'none');
 
 var brushableG = boardBrushSVG.append('g').classed('brushable',true)
-	.attr('transform','translate(0,-12)')
+	.attr('transform','translate(0,-25)')
 	.call(brush);
 
 brushableG.select('.selection').attr('fill-opacity', 0.18).attr('height', 690);
@@ -141,8 +141,9 @@ var axisG = boardAxisSVG.append('g')
 
 d3.selectAll('.x.axis').selectAll('text').classed('tick_text', true)
 
-var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',0).attr('width',bm_width-10).attr('height', 63)
+var timeZoomBox = boardAxisSVG.append('rect').classed('timezoom',true).attr('y',10).attr('width',bm_width-10).attr('height', 55)
 	.style('opacity', 0)
+	.style('cursor', 'all-scroll' )
 	.call(timeZoom);
 
 
@@ -154,12 +155,12 @@ var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
 var Drag_info = d3.select('.timeWrapper').append('div')
 .attr('id', 'drag_info')
 .append('span').style('margin-right', '15px').style('margin-top', '15px')
-.html('</br>Draggable Here')
+.append('img').attr('src', './public/drag_icon.png').attr('height', '40px').attr('width', '50px')
 
 var Zoom_info = d3.select('#board_axis').append('div')
 .attr('id','zoom_info')
-.append('span').style('margin-right', '15px').style('margin-top', '15px')
-.html('Zoomable Here')
+.append('span').style('margin-right', '15px').style('margin-top', '10px')
+// .append('img').attr('src', './public/zoom_icon.png').attr('height', '30px').attr('width', '30px')
 
 var timeRectsG = boardSVG.append('g').classed('timeRects',true)
 
@@ -250,6 +251,10 @@ var options = {
 };
 
 $("#search").easyAutocomplete(options);
+d3.select('input#search').attr('placeholder', 'Enter country name.')
+
+d3.select('div.easy-autocomplete').style('width', '150px')
+d3.select('input#search').style('width','150px')
 
 d3.queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
@@ -438,7 +443,7 @@ d3.select('#time_legend').select('svg').append('g').selectAll('text')
 
 
 
-infoDIV.select('#info1').html('No selection');
+infoDIV.select('#info1').html('No selection').style('opacity',0.5);
 infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
 infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 infoDIV.select('#info3').html('')
@@ -1412,7 +1417,7 @@ function brushed() {
   	
 
   	infoDIV.select('#info2_cont').html( '<b>' + filter_all + '</b>')
-  	infoDIV.select('#info3_cont').html( '<b>' + filter_all_war + '</b>')
+  	// infoDIV.select('#info3_cont').html( '<b>' + filter_all_war + '</b>')
   	
 
    }
@@ -1446,7 +1451,7 @@ function brushed() {
   	
 
   	infoDIV.select('#info2_cont').html( '<b>' + filter_involved + '</b>')
-  	infoDIV.select('#info3_cont').html( '<b>' + filter_involved_war + '</b>')
+  	// infoDIV.select('#info3_cont').html( '<b>' + filter_involved_war + '</b>')
   	
   }
 
@@ -1478,14 +1483,14 @@ function brushed() {
 
   var filter_intersected_war = g_map.selectAll('.circleFiltered').filter(function(d){return d3.select(this).classed('war')}).data().length;
 
-  infoDIV.select('#info2_cont').html( '<b>' + filter_intersected + '</br></br>' + filter_intersected_hostile + '</br></br>' + filter_intersected_allied)
-  infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>')
+  infoDIV.select('#info2_cont').html( '<b>' + filter_intersected)
+  // infoDIV.select('#info3_cont').html( '<b>' + filter_intersected_war+ '</b>')
   
 
    }
 
  }
-  
+  drawCharts()
 }
 
 function dragged(h){
@@ -1702,6 +1707,7 @@ function drawLegends(d){
 		if(document.querySelector('.circleHighlighted_war') !== null){
 
 
+
 			var w_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_high_war', true);
 			var w_high_text = legends.append('text').classed('legend_war legend_high_war', true).text('War where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',24);
 
@@ -1799,7 +1805,7 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(selection.data()[0].properties.CNTRY_NAME)
 		
-		infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war) involved:'  )
+		infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war) involved:'   )
 		
 		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>')
 		
@@ -1855,14 +1861,21 @@ function describe(selection){
 		var hbarSVG = infoDIV.select('#info3').style('width','100%').append('svg').attr('transform','translate(0,-5)').attr('width', '100%')
 
 		// infoDIV.select('#info3_cont').style('width', 0)
-		hbarSVG.append('g').selectAll('rect')
+		var hbar = hbarSVG.selectAll('.ProportionBars')
 		.data([fltr_circles_int_hostile.data().length,fltr_circles_int_allied.data().length])
-		.enter().append('rect').classed('ProportionBars', true)
-		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/3})
+		
+		hbar.enter().append('rect').merge(hbar)
+		.classed('ProportionBars', true)
+
+		.attr('x', bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/3)
 		.attr('y', 0)
+		.style('fill',function(d,i){return i==0?'#ff6060':'#5b41f4'})
+		.transition()
+		.duration(800)
+		.attr('x', function(d,i){return i*bm_width/2* fltr_circles_int_hostile.data().length/fltr_circles_int.data().length + bm_width/3})
 		.attr('width', function(d){return d/fltr_circles_int.data().length * bm_width/2})
 		.attr('height', 15)
-		.style('fill',function(d,i){return i==0?'#ff6060':'#5b41f4'})
+		
 
 
 		infoDIV.select('#info3_cont').style('height','20px')
@@ -2014,7 +2027,6 @@ function resize(){
     window.innerWidth >= 1080?
     timeAxis.ticks(4)
     :timeAxis.ticks(3);
-
 
 	axisG.call(timeAxis);
 	console.log('resized')
@@ -2168,12 +2180,12 @@ function drawCharts(){
 
 //FatalityChart
 
-	 infoDIV.select('#chartSVG').selectAll('g').remove();
-	 // infoDIV.select('#chartSVG').selectAll('text').remove();
+	 // infoDIV.select('#chartSVG').selectAll('g').remove();
+	 infoDIV.select('#chartSVG').selectAll('.graphTitle').remove();
 	 console.log('chart Drawn')
 
 	var x = d3.scaleBand().rangeRound([0, bm_width/2 + 10]).padding(0.07),
-    	y = d3.scaleLinear().rangeRound([bm_height/3, 0]);
+    	y = d3.scaleLinear().rangeRound([0, bm_height/3]);
 
      
 	var fatalityData = []
@@ -2190,33 +2202,39 @@ function drawCharts(){
   	 y.domain([0, d3.max(fatalityData, function(d) { return d })]);
 
 
-  	infoDIV.select('#chartSVG').append('g').append('text').classed('graphTitle', true).
+  	infoDIV.select('#chartSVG').append('text').classed('graphTitle', true).
   	text('Fatality Distribution').style('opacity', 0.5).style('font-size', 10.5)
   	.attr('y', 10)
   	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
 
-	var bars = infoDIV.select('#chartSVG').append('g').selectAll('rect').data(fatalityData);
+	var bars = infoDIV.select('#chartSVG').selectAll('.fatalityBars').data(fatalityData);
 
 	bars.enter().append('rect').merge(bars).classed('fatalityBars',true)
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
-    .attr('y', function(d) { return y(d)+40; })
+    .attr('y', function(d) {  return bm_height/3+40; })
     .attr('width', x.bandwidth())
-    .attr('height', function(d) { return +bm_height/3 - y(+d); })
+    .attr('height', 0)
+    .transition().duration(800)
+
+    .attr('y', function(d) { return bm_height/3+40 - y(d); })
+    .attr('height', function(d) { return y(d) < 0? 0: y(d); })
     .style('fill', '#749fc9')
 
-    var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(fatalityData);
-    bars.enter().append('text').merge(bars_num)
-    .attr('class', 'bars_num')
+    var bars_num_f = infoDIV.select('#chartSVG').selectAll('.bars_num_f').data(fatalityData);
+    bars_num_f.exit().remove();
+    bars_num_f.enter().append('text').merge(bars_num_f)
+    .attr('class', 'bars_num_f')
     .attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]) + x.bandwidth()/2 })
-    .attr('y', function(d){return y(d)+35})
+    .attr('y', function(d){return bm_height/3+35 - y(d)})
     .text(function(d){return d})
    
 
 
-    infoDIV.select('#chartSVG').append('g')
-	    	.selectAll('rect')
+    infoDIV.select('#chartSVG')
+	    	.selectAll('.fatalityBase')
 			.data([-9,0,1,2,3,4,5,6])
 			.enter().append('rect')
+			.classed('fatalityBase', true)
 			.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i])})
 			.attr('y', bm_height/3 +45)
 			.attr('width', x.bandwidth())
@@ -2230,7 +2248,7 @@ function drawCharts(){
 
  //Hostility Chart
 	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width*1 + 30]).padding(0.07),
-    	y2 = d3.scaleLinear().rangeRound([bm_height/3, 0]);
+    	y2 = d3.scaleLinear().rangeRound([0,bm_height/3]);
 
      
 	var hostilityData = []
@@ -2244,31 +2262,39 @@ function drawCharts(){
 	 x2.domain([2,3,4,5]);
   	 y2.domain([0, d3.max(hostilityData, function(d) { return d })]);
 
-	infoDIV.select('#chartSVG').append('g').append('text').classed('graphTitle', true).
+	infoDIV.select('#chartSVG').append('text').classed('graphTitle', true).
   	text('Hostility Distribution').style('opacity', 0.5).style('font-size', 10.5)
   	.attr('y', 10)
   	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
 	 
-	var bars = infoDIV.select('#chartSVG').append('g').selectAll('rect').data(hostilityData);
+	var bars = infoDIV.select('#chartSVG').selectAll('.hostilityBars').data(hostilityData);
 
 	bars.enter().append('rect').merge(bars).classed('hostilityBars',true)
 	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
-    .attr('y', function(d) { return y2(d)+40; })
+   
     .attr('width', x2.bandwidth())
-    .attr('height', function(d) { return bm_height/3 - y2(d); })
+    .attr('y', function(d) { return bm_height/3+40; })
+    .attr('height',0)
+   	
+    .transition().duration(800)
+
+    .attr('y', function(d) { return bm_height/3+40 - y2(d); })
+    .attr('height', function(d) { return y2(d) < 0? 0: y2(d); })
     .style('fill', '#749fc9')
 
-    var bars_num = infoDIV.select('#chartSVG').append('g').selectAll('text').data(hostilityData);
-    bars.enter().append('text').merge(bars_num)
-    .attr('class', 'bars_num')
+    var bars_num_h = infoDIV.select('#chartSVG').selectAll('.bars_num_h').data(hostilityData);
+        bars_num_h.exit().remove();
+    bars_num_h.enter().append('text').merge(bars_num_h)
+    .attr('class', 'bars_num_h')
     .attr('x', function(d,i) { return x2(x2.domain()[i]) + x2.bandwidth()/2 })
-    .attr('y', function(d){return y2(d)+35})
+    .attr('y', function(d){return bm_height/3+35 - y2(d)})
     .text(function(d){return d})
    
 
     infoDIV.select('#chartSVG').append('g')
 	    	.selectAll('rect').data([2,3,4,5])
 			.enter().append('rect')
+			.classed('hostilityBase', true)
 			.attr('x', function(d,i){return x2(x2.domain()[i])})
 			.attr('y', bm_height/3 +45)
 			.attr('height', 12)
@@ -2335,7 +2361,7 @@ var allCircles, allRects;
 					searchedMap.attr('style', null).attr('class', null).classed('map mapClicked', true);
 				
 					fltr_circles.attr('style',null)
-					.attr('class', function(){return searchedMap.classed('war')? 'war circleHighlighted_war' : 'dispute circleHighlighted'})
+					.attr('class', function(){return d3.select(this).classed('war')? 'war circleHighlighted_war' : 'dispute circleHighlighted'})
 					.classed('opaque', true).classed('transparent',false)
 					.transition().attr('r',3.5);
 					
@@ -2413,26 +2439,26 @@ var allCircles, allRects;
 							
 							fltr_circles_int = fltr_circles
 								.filter(function()
-									{return searchedMap.classed('circleHighlighted')||searchedMap.classed('circleHighlighted_war')}
+									{return d3.select(this).classed('circleHighlighted')||d3.select(this).classed('circleHighlighted_war')}
 									)
 								.attr('class', function(d){return d.war ==0?'dispute intersected' : 'war intersected'})
 
 							fltr_circles_int_allied = fltr_circles_int.filter( function(d_){
-								return (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
-									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
+								return (include(d_.countries_A,  searchedMap.data()[0].properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
+									   (include(d_.countries_B,  searchedMap.data()[0].properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									}).classed('allied', true);
 
 						
 							fltr_circles_int_hostile = fltr_circles_int.filter( function(d_){
 								return !(
-									   (include(d_.countries_A, d.properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
-									   (include(d_.countries_B, d.properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
+									   (include(d_.countries_A,  searchedMap.data()[0].properties.COWCODE) && include(d_.countries_A, storedSelection1.COWCODE)) ||
+									   (include(d_.countries_B,  searchedMap.data()[0].properties.COWCODE) && include(d_.countries_B, storedSelection1.COWCODE))
 									   )
 									}).classed('hostile', true);
 
 							fltr_circles_int_war = fltr_circles
 								.filter(function()
-									{return searchedMap.classed('war intersected')}
+									{return d3.select(this).classed('war intersected')}
 									);
 
 							

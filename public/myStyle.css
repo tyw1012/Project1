@@ -140,12 +140,12 @@ body{
 	float:left; 
 	background: #fff; 
 	overflow:hidden; 
-	border-left: 1px solid #667a82;
+	border-left: 2px solid #667a82;
 }
 
 #board_axis{
 	width:100%; 
-	height: 75px;
+	height: 55px;
 }
 #board_time{
 	width:100%; 
@@ -162,7 +162,7 @@ body{
 }
 #board_info{
 	width:100%; 
-	height: 33.5%; 
+	height: 35%; 
 	overflow:auto;
 	font-family: sans-serif;
 	font-weight: lighter;
@@ -174,6 +174,7 @@ body{
 #board_header{
 	 /*background: #a9cbce;*/
 	 background: #667a82;
+	 height: 30px;
 	 /*color: #fff;*/
 }
 
@@ -211,7 +212,7 @@ body{
 
 #info3{
 	/*margin-left: 16px;*/
-	width: 50%; 
+	width: 80%; 
 	height:20px; 
 	
 	font-weight: bold;
@@ -333,12 +334,12 @@ sup{
 	text-align: right;
 	height: 40px;
 	position:absolute;
-	opacity: 0.5;
+	/*opacity: 0.5;*/
 	right: 18px;
-	top: 110px;
+	top: 90px;
 	font-size: 11px;
 	width: calc(26% - 80px);
-	border-bottom: 1.5px dotted rgba(0, 0, 0, .4);
+	border-bottom: 1.5px dotted rgba(0, 0, 0, .3);
 	/*border-bottom-style:dashed;*/
 	
 
@@ -351,7 +352,7 @@ sup{
 	position:absolute;
 	opacity: 0.5;
 	right: 18px;
-	top: 40px;
+	top: 34px;
 	font-size: 11px;
 	width: calc(26% - 80px);
 
@@ -395,7 +396,7 @@ circle.legend_hostile_war{
 	fill: red;
 	
 }
-.bars_num{
+.bars_num_f, .bars_num_h{
 	font-size: 9.5px;
     text-anchor :middle
 }
@@ -512,7 +513,7 @@ circle.legend_hostile_war{
 
 #board_info{
 	width:100%; 
-	height: 31.5%; 
+	height: 35%; 
 	overflow:auto;
 	font-family: arial;
 	font-size: 11px;
