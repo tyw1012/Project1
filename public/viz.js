@@ -175,6 +175,7 @@ var fatalityScale = d3.scaleLinear().domain([-9,0,6]).interpolate(d3.interpolate
 					.range([d3.rgb('#000000'),d3.rgb('#4c0000'), d3.rgb('#ed0202')])
 
 var fatalityStringScale = d3.scaleOrdinal().domain([-9,0,1,2,3,4,5,6]).range(['Unknown','None','1-25 deaths','26-100 deaths','101-250 deaths','251-500 deaths','501-999 deaths','1000 deaths or more'])
+var hostilityStringScale = d3.scaleOrdinal().domain([2,3,4,5]).range(['Threat to use military force', 'Display of military force', 'Use of military force', 'War']) 
 
 var frequencyScale = d3.scaleLinear().domain([1,51]).rangeRound([1,10]).clamp(true);
 
@@ -225,6 +226,12 @@ var fatalityTip = d3.tip()
   		.offset([-10, 0])
   		.html(function(d) {
     	return '<strong><span style="color:white">' + fatalityStringScale(d) + "</span>" });
+
+var hostilityTip = d3.tip()
+.attr('class', 'd3-tip')
+  		.offset([-10, 0])
+  		.html(function(d) {
+    	return '<strong><span style="color:white">' + hostilityStringScale(d) + "</span>" });
 
 g_map.call(circleTip);
 g_map.call(countryTip);
@@ -372,7 +379,7 @@ drawLegends();
 
 
 d3.select('#time_legend').append('svg')
-.attr('width','100%').attr('height', '100%').call(fatalityTip)
+.attr('width','100%').attr('height', '100%').call(fatalityTip).call(hostilityTip)
 .selectAll('rect')
 .data([-9,0,1,2,3,4,5,6])
 .enter().append('rect')
@@ -413,6 +420,8 @@ d3.select('#time_legend').select('svg').append('g').selectAll('rect').data([2,3,
 .style('cursor','pointer')
 .style('stroke-width', 1)
 .style('stroke', 'black')
+.on('mouseover', hostilityTip.show)
+.on('mouseout', hostilityTip.hide)
 .on('click', filterByHostility)
 
 d3.select('#time_legend').select('svg').append('text').attr('id','hostility_level')
@@ -2208,7 +2217,8 @@ function drawCharts(){
 
 	 // infoDIV.select('#chartSVG').selectAll('g').remove();
 	 infoDIV.select('#chartSVG').selectAll('.graphTitle').remove();
-	 console.log('chart Drawn')
+	 infoDIV.select('#chartSVG').select('.hostilityBaseG').remove()
+	 
 
 	var x = d3.scaleBand().rangeRound([0, chartWidth/2 ]).padding(0.07),
     	y = d3.scaleLinear().rangeRound([0, chartHeight]);
@@ -2317,7 +2327,7 @@ function drawCharts(){
     .text(function(d){return d})
    
 
-    infoDIV.select('#chartSVG').append('g')
+    infoDIV.select('#chartSVG').append('g').classed('hostilityBaseG', true)
 	    	.selectAll('rect').data([2,3,4,5])
 			.enter().append('rect')
 			.classed('hostilityBase', true)
@@ -2325,11 +2335,21 @@ function drawCharts(){
 			.attr('y', chartHeight)
 			.attr('height', 12)
 			.attr('width',x2.bandwidth())
-			.style('fill', '#fff').style('opacity', 0.5)
+			.style('fill', '#fff')
+			.style('opacity', 0.5)
 			.style('cursor','pointer')
 			.style('stroke-width', 1)
 			.style('stroke', 'black')
 			.on('click', filterByHostility)
+			.on('mouseover', hostilityTip.show)
+			.on('mouseout', hostilityTip.hide)
+
+    infoDIV.select('#chartSVG').select('.hostilityBaseG').selectAll('text').data(['T','D','U','W'])
+    		.enter().append('text').classed('hostilityBaseG_text',true)
+    		.text(function(d){return d})
+			.attr('x', function(d,i){return x2(x2.domain()[i]) + x2.bandwidth()/2})
+			.attr('y', bm_height/3 + 55)
+			
 		
 
 }
