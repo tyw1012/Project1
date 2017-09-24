@@ -126,21 +126,23 @@ body{
 }
 
 #main{
-	width:74%; 
+	position:absolute;
+	width:100%; 
 	height:100%; 
-	float:left; 
 	overflow:hidden;
-	 background:#f5fbfb; 
-	 position:relative;
+    background:#f5fbfb; 
+	
 }
 
 #board{
-	width:calc(26% - 5px); 
-	height:100%; 
-	float:left; 
-	background: #fff; 
+	position: absolute;
+	top:0;
+	right:0;
+	width:350px; 
+	height:100%;
+	background: rgba(255,255,255,0.9); 
 	overflow:hidden; 
-	border-left: 2px solid #667a82;
+	box-shadow:-2px 0 44px 2px rgba(0,0,0,.06);
 }
 
 #board_axis{
@@ -149,20 +151,25 @@ body{
 }
 #board_time{
 	width:100%; 
-	height: calc(63% - 140px); 
+	height: calc(100% - 160px); 
 	overflow:auto;
 }
 #time_legend{
 	width:100%; 
-	height:56px; 
+	height:75px; 
 	background: #e1e6e8;
-	border-bottom: 1px solid #667a82;
+	box-shadow:0 -2px 54px 5px rgba(0,0,0,.1);
+	/*border-bottom: 1px solid #667a82;*/
 	/*border-left:1px solid #667a82;*/
 
 }
 #board_info{
-	width:100%; 
-	height: 35%; 
+	position: absolute;
+	left:15px;
+	bottom: 35px;
+	width:400px; 
+	height: 50%; 
+
 	overflow:auto;
 	font-family: sans-serif;
 	font-weight: lighter;
@@ -173,7 +180,6 @@ body{
 
 #board_header{
 	 /*background: #a9cbce;*/
-	 background: #667a82;
 	 height: 30px;
 	 /*color: #fff;*/
 }
@@ -412,6 +418,10 @@ circle.legend_hostile_war{
 		width: 100%;
 		height: 250;
 }
+.hostilityBars, .fatalityBars{
+
+	fill:#377082;
+}
 .d3-tip {
   line-height: 1.7;
   font-weight: bold;
@@ -513,7 +523,7 @@ circle.legend_hostile_war{
 
 #board_info{
 	width:100%; 
-	height: 35%; 
+	height: 45%; 
 	overflow:auto;
 	font-family: arial;
 	font-size: 11px;

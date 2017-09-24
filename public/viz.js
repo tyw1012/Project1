@@ -2203,13 +2203,15 @@ function filterByHostility(d){
 function drawCharts(){
 
 //FatalityChart
+	var chartWidth = 300;
+	var chartHeight = 150;
 
 	 // infoDIV.select('#chartSVG').selectAll('g').remove();
 	 infoDIV.select('#chartSVG').selectAll('.graphTitle').remove();
 	 console.log('chart Drawn')
 
-	var x = d3.scaleBand().rangeRound([0, bm_width/2 + 10]).padding(0.07),
-    	y = d3.scaleLinear().rangeRound([0, bm_height/3]);
+	var x = d3.scaleBand().rangeRound([0, chartWidth/2 ]).padding(0.07),
+    	y = d3.scaleLinear().rangeRound([0, chartHeight]);
 
      
 	var fatalityData = []
@@ -2235,21 +2237,21 @@ function drawCharts(){
 
 	bars.enter().append('rect').merge(bars).classed('fatalityBars',true)
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
-    .attr('y', function(d) {  return bm_height/3+40; })
+    .attr('y', function(d) {  return chartHeight; })
     .attr('width', x.bandwidth())
     .attr('height', 0)
     .transition().duration(800)
 
-    .attr('y', function(d) { return bm_height/3+40 - y(d); })
+    .attr('y', function(d) { return chartHeight - y(d); })
     .attr('height', function(d) { return y(d) < 0? 0: y(d); })
-    .style('fill', '#749fc9')
+    // .style('fill', '#749fc9')
 
     var bars_num_f = infoDIV.select('#chartSVG').selectAll('.bars_num_f').data(fatalityData);
     bars_num_f.exit().remove();
     bars_num_f.enter().append('text').merge(bars_num_f)
     .attr('class', 'bars_num_f')
     .attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]) + x.bandwidth()/2 })
-    .attr('y', function(d){return bm_height/3+35 - y(d)})
+    .attr('y', function(d){return chartHeight - y(d)})
     .text(function(d){return d})
    
 
@@ -2260,7 +2262,7 @@ function drawCharts(){
 			.enter().append('rect')
 			.classed('fatalityBase', true)
 			.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i])})
-			.attr('y', bm_height/3 +45)
+			.attr('y', chartHeight)
 			.attr('width', x.bandwidth())
 			.attr('height', 12)
 			.style('fill', function(d){return fatalityScale(d)})
@@ -2271,8 +2273,8 @@ function drawCharts(){
 
 
  //Hostility Chart
-	var x2 = d3.scaleBand().rangeRound([bm_width/2 + 30, bm_width*1 + 30]).padding(0.07),
-    	y2 = d3.scaleLinear().rangeRound([0,bm_height/3]);
+	var x2 = d3.scaleBand().rangeRound([chartWidth/2+20, chartWidth]).padding(0.07),
+    	y2 = d3.scaleLinear().rangeRound([0,chartHeight]);
 
      
 	var hostilityData = []
@@ -2297,21 +2299,21 @@ function drawCharts(){
 	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
    
     .attr('width', x2.bandwidth())
-    .attr('y', function(d) { return bm_height/3+40; })
+    .attr('y', function(d) { return chartHeight; })
     .attr('height',0)
    	
     .transition().duration(800)
 
-    .attr('y', function(d) { return bm_height/3+40 - y2(d); })
+    .attr('y', function(d) { return chartHeight - y2(d); })
     .attr('height', function(d) { return y2(d) < 0? 0: y2(d); })
-    .style('fill', '#749fc9')
+    // .style('fill', '#749fc9')
 
     var bars_num_h = infoDIV.select('#chartSVG').selectAll('.bars_num_h').data(hostilityData);
         bars_num_h.exit().remove();
     bars_num_h.enter().append('text').merge(bars_num_h)
     .attr('class', 'bars_num_h')
     .attr('x', function(d,i) { return x2(x2.domain()[i]) + x2.bandwidth()/2 })
-    .attr('y', function(d){return bm_height/3+35 - y2(d)})
+    .attr('y', function(d){return chartHeight - y2(d)})
     .text(function(d){return d})
    
 
@@ -2320,7 +2322,7 @@ function drawCharts(){
 			.enter().append('rect')
 			.classed('hostilityBase', true)
 			.attr('x', function(d,i){return x2(x2.domain()[i])})
-			.attr('y', bm_height/3 +45)
+			.attr('y', chartHeight)
 			.attr('height', 12)
 			.attr('width',x2.bandwidth())
 			.style('fill', '#fff').style('opacity', 0.5)
