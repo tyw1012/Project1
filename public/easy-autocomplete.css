@@ -14,7 +14,7 @@
 .easy-autocomplete input {
   position:absolute;
   right: 5px;
-  opacity: 0.3;
+  opacity: 0.9;
   border-color: #ccc;
   border-radius: 3px;
   border-style: solid;
@@ -22,7 +22,7 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
   /*color: #555;*/
   float: none;
-  padding: 2px 12px;
+  padding: 5px 12px;
   margin-top: 4px;
   margin-left: 4px;
   /*margin-bottom: 3px;*/

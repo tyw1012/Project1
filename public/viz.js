@@ -45,7 +45,7 @@ var bm_height = d3.select('#boardMain').style('height').replace('px','');
 
 var projection = d3.geoMercator()
 	.scale(240)
-	.center([35, 35])
+	.center([0, 35])
 	.translate([width/2 -180 , height/2-50]);
 
 var path = d3.geoPath().projection(projection);
@@ -85,18 +85,18 @@ var brush = d3.brushX()
 
 
 var boardAxisSVG = d3.select('#board_axis').append('svg')
-	.attr('transform','translate(60, -15)')
+	.attr('transform','translate(60, 0)')
 	.attr('width', '100%')
 	.attr('height', 65);
 
 var boardBrushSVG = d3.select('#board_axis').append('svg')
-	.attr('transform','translate(60, -13)')
+	.attr('transform','translate(60, -8)')
 	.attr('width', '100%')
-	.attr('height', 712)
+	.attr('height', 1200)
 	.style('pointer-events', 'none');
 
 var brushableG = boardBrushSVG.append('g').classed('brushable',true)
-	.attr('transform','translate(0,-25)')
+	.attr('transform','translate(0,-30)')
 	.call(brush);
 
 brushableG.select('.selection').attr('fill-opacity', 0.18).attr('height', 690);
@@ -136,7 +136,7 @@ var legends_2 = d3.select('#main').append('div').attr('class', 'legendDiv2').app
 
 var axisG = boardAxisSVG.append('g')
    .attr('class', 'x axis')
-   .attr('transform','translate(0, 63.5)')
+   .attr('transform','translate(0, 55)')
    .call(timeAxis);
 
 d3.selectAll('.x.axis').selectAll('text').classed('tick_text', true)
@@ -180,10 +180,13 @@ var hostilityStringScale = d3.scaleOrdinal().domain([2,3,4,5]).range(['Threat to
 var frequencyScale = d3.scaleLinear().domain([1,51]).rangeRound([1,10]).clamp(true);
 
 var freqColorScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
-					.range([d3.rgb('#ffe7c4'), d3.rgb('#ff8460')])
+					// .range([d3.rgb('#ffe7c4'), d3.rgb('#ff8460')])
+					// .range([d3.rgb('#ffdfa0'), d3.rgb('#fc472f')])
+					 .range([d3.rgb('#ffd1b2'), d3.rgb('#ff4528')])
 				
 var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
-					.range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
+					// .range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
+					.range([d3.rgb('#fff'), d3.rgb('#fff')])
 
 var fltr_circles, fltr_circles_war, fltr_circles_int, fltr_circles_int_allied, fltr_circles_int_hostile, fltr_circles_int_war;		
 
@@ -453,8 +456,8 @@ d3.select('#time_legend').select('svg').append('g').selectAll('text')
 
 
 infoDIV.select('#info1').html('No selection').style('opacity',0.5);
-infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
-infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
+infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): '+ '<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
+// infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 infoDIV.select('#info3').html('')
 infoDIV.select('#info3_cont').html('');
 // infoDIV.select('#info4').html('Fatality Distribution')
@@ -1690,7 +1693,7 @@ function initialize(){
 	// infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
 	
 	var chartSVG = infoDIV.select('#info4').append('svg').attr('id', 'chartSVG')
-	.attr('width', '100%').attr('height', 250)
+	.attr('width', '100%').attr('height', 230)
 	drawCharts();
 }
 
@@ -1731,7 +1734,7 @@ function drawLegends(d){
 			var d_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_dispute dispute legend_high', true);
 			var d_high_text = legends.append('text').classed('legend_dispute legend_high', true).text('Dispute where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',24);
 
-			legendLength = legendLength + d_high_text.property('textContent').length*6.5 + 25
+			legendLength = legendLength + d_high_text.property('textContent').length*7 + 25
 
 		
 		}
@@ -1744,7 +1747,7 @@ function drawLegends(d){
 			var w_high = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_high_war', true);
 			var w_high_text = legends.append('text').classed('legend_war legend_high_war', true).text('War where '+d.properties.CNTRY_NAME+' got Involved').attr('x',legendLength + 15).attr('y',24);
 
-			legendLength = legendLength + w_high_text.property('textContent').length*6.5 + 25
+			legendLength = legendLength + w_high_text.property('textContent').length*7 + 25
 		}
 	
 
@@ -1785,7 +1788,7 @@ function drawLegends(d){
 			var d_hostile_text = legends.append('text').classed('legend_dispute legend_hostile', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',24);
 		
 			
-			legendLength = legendLength + d_hostile_text.property('textContent').length*6.5 + 10
+			legendLength = legendLength + d_hostile_text.property('textContent').length*7 + 10
 		}
 
 		if (document.querySelector('.dispute.intersected.allied') !== null){
@@ -1793,7 +1796,7 @@ function drawLegends(d){
 			var d_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_dispute dispute legend_allied', true);
 			var d_allied_text = legends.append('text').classed('legend_dispute legend_allied', true).text('Dispute where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',24);
 
-			legendLength = legendLength + d_allied_text.property('textContent').length*6.5 + 10
+			legendLength = legendLength + d_allied_text.property('textContent').length*7 + 10
 
 		}
 
@@ -1802,7 +1805,7 @@ function drawLegends(d){
 			var w_hostile = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_hostile_war', true);
 			var w_hostile_text = legends.append('text').classed('legend_war legend_hostile_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were hostile').attr('x',legendLength + 15).attr('y',24);
 
-			legendLength = legendLength + w_hostile_text.property('textContent').length*6.5 + 10
+			legendLength = legendLength + w_hostile_text.property('textContent').length*7 + 10
 
 		}
 
@@ -1811,7 +1814,7 @@ function drawLegends(d){
 			var w_allied = legends.append('circle').attr('r', 7).attr('cx', legendLength).attr('cy', 20).classed('legend_war war legend_allied_war', true);
 			var w_allied_text = legends.append('text').classed('legend_war legend_allied_war', true).text('War where '+d.properties.CNTRY_NAME+' and '+storedSelection1.CNTRY_NAME+' were allied').attr('x',legendLength + 15).attr('y',24);
 
-			legendLength = legendLength + w_hostile_text.property('textContent').length*6.5 + 10
+			legendLength = legendLength + w_hostile_text.property('textContent').length*7 + 10
 
 		}
 
@@ -1891,7 +1894,7 @@ function describe(selection){
 		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles_int.data().length +'</b>' )
 		  
 		
-		var hbarSVG = infoDIV.select('#info3').style('width','100%').append('svg').attr('transform','translate(0,-5)').attr('width', '100%')
+		var hbarSVG = infoDIV.select('#info3').style('width','100%').append('svg').attr('transform','translate(-40,0)').attr('width', '100%')
 
 		// infoDIV.select('#info3_cont').style('width', 0)
 		var hbar = hbarSVG.selectAll('.ProportionBars')
@@ -2239,7 +2242,7 @@ function drawCharts(){
 
 
   	infoDIV.select('#chartSVG').append('text').classed('graphTitle', true).
-  	text('Fatality Distribution').style('opacity', 0.5).style('font-size', 10.5)
+  	text('Fatality Distribution').style('font-size', 10.5)
   	.attr('y', 10)
   	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
 
@@ -2247,12 +2250,12 @@ function drawCharts(){
 
 	bars.enter().append('rect').merge(bars).classed('fatalityBars',true)
 	.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]); })
-    .attr('y', function(d) {  return chartHeight; })
+    .attr('y', function(d) {  return chartHeight + 50 ; })
     .attr('width', x.bandwidth())
     .attr('height', 0)
     .transition().duration(800)
 
-    .attr('y', function(d) { return chartHeight - y(d); })
+    .attr('y', function(d) { return chartHeight - y(d) + 50; })
     .attr('height', function(d) { return y(d) < 0? 0: y(d); })
     // .style('fill', '#749fc9')
 
@@ -2261,7 +2264,7 @@ function drawCharts(){
     bars_num_f.enter().append('text').merge(bars_num_f)
     .attr('class', 'bars_num_f')
     .attr('x', function(d,i) { return x(fatalityStringScale.domain()[i]) + x.bandwidth()/2 })
-    .attr('y', function(d){return chartHeight - y(d)})
+    .attr('y', function(d){return chartHeight - y(d) + 43})
     .text(function(d){return d})
    
 
@@ -2272,7 +2275,7 @@ function drawCharts(){
 			.enter().append('rect')
 			.classed('fatalityBase', true)
 			.attr('x', function(d,i) { return x(fatalityStringScale.domain()[i])})
-			.attr('y', chartHeight)
+			.attr('y', chartHeight + 53)
 			.attr('width', x.bandwidth())
 			.attr('height', 12)
 			.style('fill', function(d){return fatalityScale(d)})
@@ -2299,7 +2302,7 @@ function drawCharts(){
   	 y2.domain([0, d3.max(hostilityData, function(d) { return d })]);
 
 	infoDIV.select('#chartSVG').append('text').classed('graphTitle', true).
-  	text('Hostility Distribution').style('opacity', 0.5).style('font-size', 10.5)
+  	text('Hostility Distribution').style('font-size', 10.5)
   	.attr('y', 10)
   	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
 	 
@@ -2309,12 +2312,12 @@ function drawCharts(){
 	.attr('x', function(d,i) { return x2(x2.domain()[i]); })
    
     .attr('width', x2.bandwidth())
-    .attr('y', function(d) { return chartHeight; })
+    .attr('y', function(d) { return chartHeight + 50; })
     .attr('height',0)
    	
     .transition().duration(800)
 
-    .attr('y', function(d) { return chartHeight - y2(d); })
+    .attr('y', function(d) { return chartHeight - y2(d) +50; })
     .attr('height', function(d) { return y2(d) < 0? 0: y2(d); })
     // .style('fill', '#749fc9')
 
@@ -2323,7 +2326,7 @@ function drawCharts(){
     bars_num_h.enter().append('text').merge(bars_num_h)
     .attr('class', 'bars_num_h')
     .attr('x', function(d,i) { return x2(x2.domain()[i]) + x2.bandwidth()/2 })
-    .attr('y', function(d){return chartHeight - y2(d)})
+    .attr('y', function(d){return chartHeight - y2(d) + 43})
     .text(function(d){return d})
    
 
@@ -2332,7 +2335,7 @@ function drawCharts(){
 			.enter().append('rect')
 			.classed('hostilityBase', true)
 			.attr('x', function(d,i){return x2(x2.domain()[i])})
-			.attr('y', chartHeight)
+			.attr('y', chartHeight + 53)
 			.attr('height', 12)
 			.attr('width',x2.bandwidth())
 			.style('fill', '#fff')
