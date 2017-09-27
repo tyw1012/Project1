@@ -43,10 +43,10 @@ var boardSVG = d3.select('#board_time').append('div').attr('class','timeWrapper'
 var bm_width = d3.select('#boardMain').style('width').replace('px','');
 var bm_height = d3.select('#boardMain').style('height').replace('px','');
 
-var projection = d3.geoMercator()
-	.scale(240)
-	.center([0, 35])
-	.translate([width/2 -180 , height/2-50]);
+var projection = d3.geoMercator();
+	window.innerWidth>=1080? projection.scale(240): projection.scale(130);
+	window.innerWidth>=1080? projection.center([0, 35]): projection.center([120,-50])
+	projection.translate([width/2 -180 , height/2-50]);
 
 var path = d3.geoPath().projection(projection);
 
@@ -185,8 +185,8 @@ var freqColorScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateH
 					 .range([d3.rgb('#ffd1b2'), d3.rgb('#ff4528')])
 				
 var freqStrokeScale = d3.scaleLinear().domain([1,10]).interpolate(d3.interpolateHcl)
-					// .range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
-					.range([d3.rgb('#fff'), d3.rgb('#fff')])
+					.range([d3.rgb('#d3a67e'), d3.rgb('#9e4329')])
+					// .range([d3.rgb('#fff'), d3.rgb('#fff')])
 
 var fltr_circles, fltr_circles_war, fltr_circles_int, fltr_circles_int_allied, fltr_circles_int_hostile, fltr_circles_int_war;		
 
@@ -456,7 +456,7 @@ d3.select('#time_legend').select('svg').append('g').selectAll('text')
 
 
 infoDIV.select('#info1').html('No selection').style('opacity',0.5);
-infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): '+ '<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
+infoDIV.select('#info2').html('Total count of MID : '+ '<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 // infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 infoDIV.select('#info3').html('')
 infoDIV.select('#info3_cont').html('');
@@ -1660,12 +1660,16 @@ function initialize(){
 	infoDIV.select('#info2_cont').style('height','20px');
 	infoDIV.select('#info1').style('width','57.5%');
 	infoDIV.select('#timeTeller').style('width','42.5%');
+	infoDIV.select('#info2').style('margin-top','0px');
 	// infoDIV.select('#info3').style('margin-top', 0)
 	// infoDIV.select('#info3_cont').style('margin-top', 0)
 	infoDIV.select('#info2').style('width',null)
 	infoDIV.select('#info2_cont').style('width',null)
 	infoDIV.select('#info3').style('width',null)
 	infoDIV.select('#info3_cont').style('width',null)
+	infoDIV.select('#info3').style('display','none');
+	infoDIV.select('#info3_cont').style('display','none');
+	infoDIV.select('#info4').style('margin-top',function(){return window.innerWidth >=1080? '15px' : '0px'});
 	
 	boardSVG_circle.selectAll('text').remove();
 
@@ -1687,7 +1691,7 @@ function initialize(){
 
 
 	infoDIV.select('#info1').html('No selection');
-	infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war): ')
+	infoDIV.select('#info2').html('Total count of MID : ')
 	infoDIV.select('#info2_cont').html('<b>'+g_map.selectAll('.dispute.circleNotClicked,.war.circleNotClicked').data().length)
 	// infoDIV.select('#info3').html('Total count of War: ')
 	// infoDIV.select('#info3_cont').html('<b>'+g_map.selectAll('.war.circleNotClicked').data().length);
@@ -1761,16 +1765,16 @@ function drawLegends(d){
 
 		legends_2.selectAll('rect').data([{lev:1, text: '1-3'},{lev:2, text: '4-8'},{lev:3, text: '11-14'},{lev:4, text: '15-20'},{lev:5, text: '21-25'},{lev:6, text: '26-31'},{lev:7, text: '32-37'},{lev:8, text: '36-42'},{lev:9, text: '43-48'},{lev:10, text: '49 or more'}]).
 		enter().append('rect').classed('legendRects', true)
-		.attr('x', function(d,i){return i*25+15})
+		.attr('x', function(d,i){return window.innerWidth>=1080?i*25 + 15: i*20 + 15})
 		.attr('y', 35)
-		.attr('width',25)
-		.attr('height', 20)
+		.attr('width', function(d){return window.innerWidth>=1080?25:20})
+		.attr('height', function(d){return window.innerWidth>=1080?20:15})
 		.style('fill', function(d){return freqColorScale(d.lev)})
 		.on('mouseover',countTip.show)
 		.on('mouseout', countTip.hide)
 		
 
-		legends_2.append('text').text('Total count of dispute and war against '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 25);
+		legends_2.append('text').text('Total count of dispute and war against '+d.properties.CNTRY_NAME).classed('legendRects',true).attr('x',15).attr('y', 27).style('font-size', function(){return window.innerWidth>=1080? 11.5:10});
 
 	}
 
@@ -1841,7 +1845,7 @@ function describe(selection){
 
 		infoDIV.select('#info1').html(selection.data()[0].properties.CNTRY_NAME)
 		
-		infoDIV.select('#info2').html('Total count of MID ('+ '+' +' war) involved:'   )
+		infoDIV.select('#info2').html('Total count of MID involved:'   )
 		
 		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles.data().length + '</b>')
 		
@@ -1867,6 +1871,8 @@ function describe(selection){
 
 		infoDIV.select('#info1').style('width','57.5%');
 		infoDIV.select('#timeTeller').style('width','42.5%');
+		infoDIV.select('#info3').style('display','block');
+		infoDIV.select('#info3_cont').style('display','block');
 		// infoDIV.select('#info4').style('margin-top', '8px')
 
 		var warList_int = []
@@ -1881,10 +1887,9 @@ function describe(selection){
 		infoDIV.select('#info1').html(storedSelection1.CNTRY_NAME +' : ' +selection.data()[0].properties.CNTRY_NAME)
 		
 		infoDIV.select('#info2')
-		.style('width', '88%')
+		// .style('width', '88%')
 		// .style('height','70px')
-		.html('Total count of MID ('
-			+ '+' +' war) both countries involved:')
+		.html('Total count of MID both countries involved:')
 			
 		infoDIV.select('#info2_cont')
 		.style('width', '12%')
@@ -1894,7 +1899,8 @@ function describe(selection){
 		infoDIV.select('#info2_cont').html( '<b>' + fltr_circles_int.data().length +'</b>' )
 		  
 		
-		var hbarSVG = infoDIV.select('#info3').style('width','100%').append('svg').attr('transform','translate(-40,0)').attr('width', '100%')
+		var hbarSVG = infoDIV.select('#info3').append('svg').attr('class', 'hbarSVG');
+		
 
 		// infoDIV.select('#info3_cont').style('width', 0)
 		var hbar = hbarSVG.selectAll('.ProportionBars')
@@ -1960,12 +1966,15 @@ function describe(selection){
 	infoDIV.select('#info5').select('svg').remove();
 	infoDIV.select('#info2_cont').html('');
 	infoDIV.select('#info3_cont').html('');
-	infoDIV.select('#info3').style('margin-top', '0px')
-	infoDIV.select('#info3_cont').style('margin-top', '0px')
+	infoDIV.select('#info3').style('display','block');
+	infoDIV.select('#info3_cont').style('display','block');
+	infoDIV.select('#info3').style('margin-top', '0px');
+	infoDIV.select('#info3_cont').style('margin-top', '0px');
+	
 
 
 
-	infoDIV.select('#info4').style('margin-left', "0px").style('margin-top',"0px");
+	infoDIV.select('#info4').style('margin-left', "0px").style('margin-top', '15px');
 
 	infoDIV.select('#info1').html('Dispute #'+selection.data()[0].DispNum);
 
@@ -1974,7 +1983,7 @@ function describe(selection){
 	 + ' - ' + timeFormat(parseTime(selection.data()[0].End)))
 	
 	infoDIV.select('#info3')
-	.html('<b>Fatality:</b> '+ fatalityStringScale(selection.data()[0].Fatality))
+	.html('<b>Fatality:</b> '+ fatalityStringScale(selection.data()[0].Fatality) + '</br><b>Hostility:</b> ' + hostilityStringScale(selection.data()[0].HostLev))
 	
 	infoDIV.select('#info4').html('<b>Involved countries:')
 	
@@ -2029,7 +2038,7 @@ function describe(selection){
 			)
 			.classed('b_list',true).style('font-size', 12)
 
-		infoDIV.select('#info5').style('height', 'calc(100% - 125px)')
+		infoDIV.select('#info5').style('height', function(){return window.innerWidth>=1080?'75px':'60px'})
 		// .style('overflow-x','auto');
 
 		temp.attr('width', d3.max([infoDIV.select('.a_list').property('textContent').length*6+150, infoDIV.select('.b_list').property('textContent').length*6+150]) + 'px')
@@ -2097,6 +2106,9 @@ function filterByFatality(d){
 	.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'})
 	.attr('cy', function(d,i){return i*40 + 25} )
 	.attr('r',0)
+	.on('mouseover', mouseoverCircle_board)
+	.on('mouseout', mouseoutCircle_board)
+	.on('click', selectCircle_board)
 	.transition().duration(1000)
 	.attr('r', 12).attr('cx', 30)
 	.style('fill', function(d){return map_clicked==0 && d.war==0? '#014e66'
@@ -2116,6 +2128,8 @@ function filterByFatality(d){
 					  :map_clicked==2 && d.war==0 && d.allied==false? '#fff'
 					  :map_clicked==2 && d.war==1 && d.allied==true? '#5b41f4'
 					  :'#ff6060'})
+	
+
 	var fatalityFiltered_rect = timeRectsG.selectAll('rect')
 	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
 
@@ -2164,6 +2178,9 @@ function filterByHostility(d){
 	.attr('class',function(d){return d.war == 0? 'circleDrawn' : 'circleDrawn_war'})
 	.attr('cy', function(d,i){return i*40 + 25} )
 	.attr('r',0)
+	.on('mouseover', mouseoverCircle_board)
+	.on('mouseout', mouseoutCircle_board)
+	.on('click', selectCircle_board)
 	.transition().duration(1000)
 	.attr('r', 12).attr('cx', 30)
 	.style('fill', function(d){return map_clicked==0 && d.war==0? '#014e66'
@@ -2183,6 +2200,8 @@ function filterByHostility(d){
 					  :map_clicked==2 && d.war==0 && d.allied==false? '#fff'
 					  :map_clicked==2 && d.war==1 && d.allied==true? '#5b41f4'
 					  :'#ff6060'})
+	
+
 	var hostilityFiltered_rect = timeRectsG.selectAll('rect')
 	.data(temp.data().sort(sortByDateAscending), function(d){return d.DispNum})
 
@@ -2215,8 +2234,8 @@ function filterByHostility(d){
 function drawCharts(){
 
 //FatalityChart
-	var chartWidth = 300;
-	var chartHeight = 150;
+	var chartWidth = window.innerWidth >= 1080? 300 : 255;
+	var chartHeight =  window.innerWidth >= 1080?150 : 120;
 
 	 // infoDIV.select('#chartSVG').selectAll('g').remove();
 	 infoDIV.select('#chartSVG').selectAll('.graphTitle').remove();
@@ -2351,7 +2370,7 @@ function drawCharts(){
     		.enter().append('text').classed('hostilityBaseG_text',true)
     		.text(function(d){return d})
 			.attr('x', function(d,i){return x2(x2.domain()[i]) + x2.bandwidth()/2})
-			.attr('y', bm_height/3 + 55)
+			.attr('y', chartHeight + 62)
 			
 		
 
