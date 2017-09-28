@@ -271,6 +271,7 @@ d3.queue()
 	.defer(d3.csv, "./public/MIDB_4.01.csv")
 	.defer(d3.csv, "./public/MIDA_4.01.csv")
 	.defer(d3.csv, "./public/MIDLOC_1.1+war.csv")
+	.defer(d3.csv, "./public/trade.csv")
 	.awaitAll(drawFirst);
 
 function drawFirst(error, files){
@@ -279,7 +280,8 @@ function drawFirst(error, files){
 
 data = d3.nest().key(function(d){ return d.DispNum3;}).entries(files[1])
 var data_2 = files[2], 
-	data_3 = files[3];
+	data_3 = files[3],
+	trade = d3.nest().key(function(d){return [d.ccode1, d.ccode2];}).entries(files[4]);
 
 for (var i = 0; i<= data.length-1; i++){
 
