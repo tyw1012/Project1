@@ -190,16 +190,16 @@ body{
 }
 
 #info1{
-	font-size: 19px;
+	font-size: 18px;
 	font-weight: bold;
-	width: 57.5%; 
+	width: 59%; 
 	height:35px; 
 	float:left;
 
 }
 #timeTeller{
 	margin-top: 5px;
-	width: 42.5%; 
+	width: 41%; 
 	height:35px; 
 	float:left;
 	 /*margin-top: 6px*/
@@ -462,7 +462,7 @@ circle.legend_hostile_war{
   font-size: 12px;
   line-height: 1.7;
   padding: 8px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
   border-radius: 3px;
 }

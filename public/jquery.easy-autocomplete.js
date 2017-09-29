@@ -1462,6 +1462,7 @@ var EasyAutocomplete = (function(scope) {
 							config.get("list").onChooseEvent();
 
 							selectedElement = -1;
+							countrySearch();
 							hideContainer();
 
 							event.preventDefault();

@@ -167,7 +167,7 @@ var timeRectsG = boardSVG.append('g').classed('timeRects',true)
 var newScale, map_newScale, initial_features,
     range, 
     storedValue = [0, bm_width-10],
-    storedSelection1, storedSelection2, data;
+    storedSelection1, storedSelection2, data, trade;
 
 var hostileStringScale = d3.scaleOrdinal().domain([2,3,4,5]).range(['T','D','U','W'])
 
@@ -222,7 +222,8 @@ var typologyTip = d3.tip()
 				  // .direction('e')
 				  .attr('class','d3-tip_typology')
 				  .offset([-60,-12])
-				  .html(function(d){ return '<span style ="color:white">'+'<b>Militarized Interstate Disputes (MID)</b> are united historical cases of conflict in which the threat,</br> display or use of military force short of war by one member state is explicitly directed towards</br> the government, official representatives, official forces, property, or territory of another state.</br> Disputes are composed of incidents that range in intensity from threats to use force to actual <br>combat short of war </strong>(Jones et al. 1996: 163). To put it more simple, "A conflict is described</br> as an MID if it causes  fewer than 1000 deaths, and some military force is used."'});
+				  .html(function(d){ 
+				  	return '<span style ="color:white">'+'<b><span style ="color:#f4c242">Militarized Interstate Disputes (MID)</b></span> are united historical cases of conflict in which the threat,</br> display or use of military force short of war by one member state is explicitly directed towards</br> the government, official representatives, official forces, property, or territory of another state.</br> Disputes are composed of incidents that range in intensity from threats to use force to actual <br>combat short of war </strong>(Jones et al. 1996: 163).<br><br> An <b><span style ="color:#f4c242">interstate war</b></span> must have: sustained combat involving regular armed forces on both sides<br> and 1,000 battle-related fatalities among all of the system members involved. Any individual<br>member state qualified as a war participant through either of two alternative criteria: a minimum<br> of 100 fatalities or a minimum of 1,000 armed personnel engaged in active combat (Resort to<br>Arms, 56).'});
 
 var fatalityTip = d3.tip()
   		.attr('class', 'd3-tip')
@@ -262,10 +263,8 @@ var options = {
 
 $("#search").easyAutocomplete(options);
 d3.select('input#search').attr('placeholder', 'Enter country name.')
-
 d3.select('div.easy-autocomplete').style('width', '150px')
 d3.select('input#search').style('width','150px')
-
 d3.queue()
 	.defer(d3.json, "./public/worldmap.geojson")//world map
 	.defer(d3.csv, "./public/MIDB_4.01.csv")
@@ -280,8 +279,8 @@ function drawFirst(error, files){
 
 data = d3.nest().key(function(d){ return d.DispNum3;}).entries(files[1])
 var data_2 = files[2], 
-	data_3 = files[3],
-	trade = d3.nest().key(function(d){return [d.ccode1, d.ccode2];}).entries(files[4]);
+	data_3 = files[3];
+trade = d3.nest().key(function(d){return [d.ccode1, d.ccode2];}).entries(files[4]);
 
 for (var i = 0; i<= data.length-1; i++){
 
@@ -982,6 +981,7 @@ var allCircles, allRects;
 							describe(d3.select(this));
 							drawCircle();
 							drawLegends(d);
+							drawTrade(d3.select(this));
 							
 
 						}
@@ -1661,8 +1661,8 @@ function initialize(){
 	infoDIV.selectAll('div').html('');
 	infoDIV.select('#info2').style('height','20px');
 	infoDIV.select('#info2_cont').style('height','20px');
-	infoDIV.select('#info1').style('width','57.5%');
-	infoDIV.select('#timeTeller').style('width','42.5%');
+	// infoDIV.select('#info1').style('width','57.5%');
+	// infoDIV.select('#timeTeller').style('width','42.5%');
 	infoDIV.select('#info2').style('margin-top','0px');
 	// infoDIV.select('#info3').style('margin-top', 0)
 	// infoDIV.select('#info3_cont').style('margin-top', 0)
@@ -1686,7 +1686,7 @@ function initialize(){
 	
 	legends.append('text').classed('legend_war',true).text('Interstate War').attr('x',175).attr('y',24);
 
-	legends.append('text').classed('definition', true).text('Typology?').attr('x', 270).attr('y', 24).style('opacity', 0.3).style('font-size', 11)
+	legends.append('text').classed('definition', true).text('Typology?').attr('x', 270).attr('y', 24).style('opacity', 0.4).style('font-size', 11.5)
 	.on('mouseover', typologyTip.show)
 	.on('mouseout', typologyTip.hide)
 
@@ -1719,7 +1719,7 @@ function drawLegends(d){
 	
 	legends.append('text').classed('legend_war',true).text('Interstate War').attr('x',175).attr('y',24);
 
-	legends.append('text').classed('definition', true).text('Typology?').attr('x', 270).attr('y', 24).style('opacity', 0.3).style('font-size', 11)
+	legends.append('text').classed('definition', true).text('Typology?').attr('x', 270).attr('y', 24).style('opacity', 0.4).style('font-size', 11.5)
 	.on('mouseover', typologyTip.show)
 	.on('mouseout', typologyTip.hide)
 
@@ -1836,9 +1836,7 @@ function describe(selection){
 
 	if( selection.classed('map') &&	map_clicked == 1){
 
-		infoDIV.select('#info1').style('width','57.5%');
-		infoDIV.select('#timeTeller').style('width','42.5%');
-
+		
 		var warList = []
 
 		for (var i = 0 ; i <= fltr_circles_war.data().length-1; i++){
@@ -1872,8 +1870,8 @@ function describe(selection){
 
 		console.log('innerWidth', window.innerWidth)
 
-		infoDIV.select('#info1').style('width','57.5%');
-		infoDIV.select('#timeTeller').style('width','42.5%');
+		// infoDIV.select('#info1').style('width','57.5%');
+		// infoDIV.select('#timeTeller').style('width','42.5%');
 		infoDIV.select('#info2').style('width', function(){return window.innerWidth>=1080? '80%': '92%'})
 		infoDIV.select('#info2_cont').style('width',  function(){return window.innerWidth>=1080? '20%': '5%'})
 		infoDIV.select('#info3').style('display','block');
@@ -2585,6 +2583,19 @@ var allCircles, allRects;
 				    }		
 				}		
 			}
+
+
+}
+
+function drawTrade(selection){
+
+	var tradeData = trade.filter(function(d){return d.key 
+		== storedSelection1.COWCODE +',' + selection.data()[0].properties.COWCODE ||
+		d.key == selection.data()[0].properties.COWCODE +','+ storedSelection1.COWCODE  })
+	
+
+	console.log(tradeData);
+
 
 
 }
